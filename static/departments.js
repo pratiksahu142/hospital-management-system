@@ -3,6 +3,33 @@ let addModal, editModal;
 document.addEventListener('DOMContentLoaded', function() {
     addModal = new bootstrap.Modal(document.getElementById('addModal'));
     editModal = new bootstrap.Modal(document.getElementById('editModal'));
+    const searchInput = document.getElementById('searchInput');
+    const table = document.getElementById('departmentsTable');
+    const rows = table.getElementsByTagName('tr');
+
+    searchInput.addEventListener('keyup', function() {
+        const searchTerm = searchInput.value.toLowerCase();
+
+        for (let i = 1; i < rows.length; i++) {
+            const row = rows[i];
+            const cells = row.getElementsByTagName('td');
+            let found = false;
+
+            for (let j = 0; j < cells.length; j++) {
+                const cellText = cells[j].textContent.toLowerCase();
+                if (cellText.includes(searchTerm)) {
+                    found = true;
+                    break;
+                }
+            }
+
+            if (found) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        }
+    });
 });
 
 function openAddModal() {

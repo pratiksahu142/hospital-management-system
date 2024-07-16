@@ -1,5 +1,3 @@
-// static/appointments.js
-
 let addModal, editModal;
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -9,16 +7,6 @@ document.addEventListener('DOMContentLoaded', function() {
   const patientInput = document.getElementById('patient');
   const departmentSelect = document.getElementById('department');
   const doctorSelect = document.getElementById('doctor');
-
-  // Patient autocomplete
-  patientInput.addEventListener('input', function() {
-    fetch('/get_patients')
-      .then(response => response.json())
-      .then(patients => {
-         console.log(patients)
-        // Implement autocomplete logic here
-      });
-  });
 
   // Add appointment form submission
   document.getElementById('addAppointmentForm').addEventListener('submit', function(e) {
@@ -65,6 +53,33 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
   });
+    const searchInput = document.getElementById('searchInput');
+    const table = document.getElementById('appointmentsTable');
+    const rows = table.getElementsByTagName('tr');
+
+    searchInput.addEventListener('keyup', function() {
+        const searchTerm = searchInput.value.toLowerCase();
+
+        for (let i = 1; i < rows.length; i++) {
+            const row = rows[i];
+            const cells = row.getElementsByTagName('td');
+            let found = false;
+
+            for (let j = 0; j < cells.length; j++) {
+                const cellText = cells[j].textContent.toLowerCase();
+                if (cellText.includes(searchTerm)) {
+                    found = true;
+                    break;
+                }
+            }
+
+            if (found) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        }
+    });
 });
 
 function openAddModal() {
@@ -95,7 +110,6 @@ function openEditModal(id) {
       document.getElementById('edit_to_time').value = appointment.to_time.slice(0, 16); // Remove seconds
       document.getElementById('editNotes').value = appointment.notes;
 
-      // Show the modal
       const editModal = new bootstrap.Modal(document.getElementById('editModal'));
       editModal.show();
     });

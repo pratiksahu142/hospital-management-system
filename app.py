@@ -1,19 +1,15 @@
-# app.py
 from datetime import datetime
 
 from flask import Flask, render_template, request, jsonify
-
-from models import db, Doctor, Patient, Address, Appointment, Department
+import db_queries
+from models import init_app, db, Doctor, Patient, Address, Appointment, Department
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///hospital.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-db.init_app(app)
+init_app(app)
 
 doctor_categories = ['Medicine', 'Surgery', 'Radiologist']
-
-with app.app_context():
-    db.create_all()
 
 
 @app.route('/')
@@ -23,89 +19,37 @@ def index():
 
 @app.route('/doctors')
 def doctors():
-    doctors = Doctor.query.all()
-    departments = Department.query.all()
+    doctors = db_queries.get_all_doctors()
+    departments = db_queries.get_all_departments()
     return render_template('doctors.html', doctors=doctors, departments=departments, doctor_categories=doctor_categories)
 
 
 @app.route('/add_doctor', methods=['POST'])
 def add_doctor():
     data = request.json
-    address = Address(
-        street=data['street'],
-        county=data['county'],
-        city=data['city'],
-        state=data['state'],
-        country=data['country'],
-        zipcode=data['zipcode']
-    )
-    db.session.add(address)
-    db.session.flush()
-
-    doctor = Doctor(
-        name=data['name'],
-        phone=data['phone'],
-        email=data['email'],
-        department_id=data['department_id'],
-        category=data['category'],
-        experience=int(data['experience']),
-        degree=data['degree'],
-        address_id=address.id
-    )
-    db.session.add(doctor)
-    db.session.commit()
-    return jsonify({'success': True, 'id': doctor.id})
+    doctor_id = db_queries.add_doctor(data)
+    return jsonify({'success': True, 'id': doctor_id})
 
 
 @app.route('/edit_doctor/<int:id>', methods=['POST'])
-def edit_doctor(id):
-    doctor = Doctor.query.get_or_404(id)
+def edit_doctor_route(id):
     data = request.json
-    doctor.name = data['name']
-    doctor.phone = data['phone']
-    doctor.email = data['email']
-    doctor.department_id = data['department_id']
-    doctor.category = data['category']
-    doctor.experience = int(data['experience'])
-    doctor.degree = data['degree']
-
-    doctor.address.street = data['street']
-    doctor.address.county = data['county']
-    doctor.address.city = data['city']
-    doctor.address.state = data['state']
-    doctor.address.country = data['country']
-    doctor.address.zipcode = data['zipcode']
-
-    db.session.commit()
+    db_queries.edit_doctor(id, data)
     return jsonify({'success': True})
 
 
 @app.route('/delete_doctor/<int:id>', methods=['POST'])
-def delete_doctor(id):
-    doctor = Doctor.query.get_or_404(id)
-    db.session.delete(doctor)
-    db.session.commit()
+def delete_doctor_route(id):
+    db_queries.delete_doctor(id)
     return jsonify({'success': True})
 
 
 @app.route('/get_doctor/<int:id>')
-def get_doctor(id):
-    doctor = Doctor.query.get_or_404(id)
-    return jsonify({
-        'name': doctor.name,
-        'phone': doctor.phone,
-        'email': doctor.email,
-        'department_id': doctor.department_id,
-        'category': doctor.category,
-        'experience': doctor.experience,
-        'degree': doctor.degree,
-        'street': doctor.address.street,
-        'county': doctor.address.county,
-        'city': doctor.address.city,
-        'state': doctor.address.state,
-        'country': doctor.address.country,
-        'zipcode': doctor.address.zipcode
-    })
+def get_doctor_route(id):
+    doctor = db_queries.get_doctor(id)
+    if doctor is None:
+        return jsonify({'error': 'Doctor not found'}), 404
+    return jsonify(doctor)
 
 
 @app.route('/patients')
@@ -260,7 +204,7 @@ def get_doctors_by_department(department):
 
 @app.route('/departments')
 def departments():
-    departments = Department.query.all()
+    departments = get_all_departments()
     return render_template('departments.html', departments=departments)
 
 

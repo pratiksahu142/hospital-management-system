@@ -129,6 +129,8 @@ document
           if (data.success) {
             addModal.hide();
             location.reload();
+          } else {
+            alert('Email already exists!')
           }
         });
     }
@@ -173,6 +175,8 @@ document
           if (data.success) {
             editModal.hide();
             location.reload();
+          } else {
+            alert('Email already exists!')
           }
         });
     }

@@ -42,6 +42,15 @@ def get_all_departments():
 
 def add_doctor(data):
     try:
+        query_check_email = text("""
+            SELECT id FROM doctor WHERE email = :email
+        """)
+        result_email = db.session.execute(query_check_email, {'email': data['email']})
+        existing_doctor = result_email.fetchone()
+
+        if existing_doctor:
+            raise DatabaseError("Email already exists in the database.")
+        
         query_address = text("""
             INSERT INTO address (street, county, city, state, country, zipcode)
             VALUES (:street, :county, :city, :state, :country, :zipcode)
@@ -69,6 +78,16 @@ def add_doctor(data):
 
 def edit_doctor(id, data):
     try:
+
+        query_check_email = text("""
+            SELECT id FROM doctor WHERE email = :email
+        """)
+        result_email = db.session.execute(query_check_email, {'email': data['email']})
+        existing_doctor = result_email.fetchone()
+
+        if existing_doctor:
+            raise DatabaseError("Email already exists in the database.")
+        
         query_doctor = text("""
             UPDATE doctor
             SET name = :name, phone = :phone, email = :email, department_id = :department_id,
@@ -148,6 +167,16 @@ def get_all_patients():
 
 def add_patient(data):
     try:
+        
+        query_check_email = text("""
+            SELECT id FROM patient WHERE email = :email
+        """)
+        result_email = db.session.execute(query_check_email, {'email': data['email']})
+        existing_patient = result_email.fetchone()
+
+        if existing_patient:
+            raise DatabaseError("Email already exists in the database.")
+
         query_address = text("""
             INSERT INTO address (street, county, city, state, country, zipcode)
             VALUES (:street, :county, :city, :state, :country, :zipcode)
@@ -175,6 +204,16 @@ def add_patient(data):
 
 def edit_patient(id, data):
     try:
+
+        query_check_email = text("""
+            SELECT id FROM patient WHERE email = :email
+        """)
+        result_email = db.session.execute(query_check_email, {'email': data['email']})
+        existing_patient = result_email.fetchone()
+
+        if existing_patient:
+            raise DatabaseError("Email already exists in the database.")
+        
         query_patient = text("""
             UPDATE patient
             SET name = :name, phone = :phone, email = :email

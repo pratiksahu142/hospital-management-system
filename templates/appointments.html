@@ -84,7 +84,7 @@
           </div>
           <div class="mb-3">
             <label for="to_time" class="form-label">To Time</label>
-            <input type="datetime-local" class="form-control" id="to_time" name="to_time" required>
+            <input type="datetime-local" class="form-control" id="to_time" name="to_time" required readonly>
           </div>
           <div class="mb-3">
             <label for="notes" class="form-label">Notes</label>
@@ -127,7 +127,7 @@
           </div>
           <div class="mb-3">
             <label for="edit_to_time" class="form-label">To Time</label>
-            <input type="datetime-local" class="form-control" id="edit_to_time" name="to_time" required>
+            <input type="datetime-local" class="form-control" id="edit_to_time" name="to_time" required readonly>
           </div>
           <div class="mb-3">
             <label for="editNotes" class="form-label">Notes</label>
@@ -142,5 +142,35 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="{{ url_for('static', filename='appointments.js') }}"></script>
+
+<script>
+  const fromTimeInput = document.getElementById('from_time');
+  const toTimeInput = document.getElementById('to_time');
+
+  const now = new Date();
+  now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+  fromTimeInput.min = now.toISOString().slice(0, 16);
+
+  fromTimeInput.addEventListener('change', function () {
+    const fromTime = new Date(fromTimeInput.value);
+    const toTime = new Date(fromTime.getTime() + 60 * 60 * 1000);
+
+    toTime.setMinutes(toTime.getMinutes() - toTime.getTimezoneOffset());
+    toTimeInput.value = toTime.toISOString().slice(0, 16);
+  });
+
+  // Edit form
+  const editfromTimeInput = document.getElementById('edit_from_time');
+  const edittoTimeInput = document.getElementById('edit_to_time');
+
+  editfromTimeInput.addEventListener('change', function () {
+    const fromTime = new Date(editfromTimeInput.value);
+    const toTime = new Date(fromTime.getTime() + 60 * 60 * 1000);
+
+    toTime.setMinutes(toTime.getMinutes() - toTime.getTimezoneOffset());
+    edittoTimeInput.value = toTime.toISOString().slice(0, 16);
+  });
+</script>
+
 </body>
 </html>

@@ -70,6 +70,16 @@ Validations (Sindhu Krovvidi):
     - Valid Email
     - Valid Experience (should be numeric)
     - Zip code (numeric)
+    - Should have unique mail id
+- Patient
+    - Valid Phone number (should be numeric)
+    - Valid Email
+    - Zip code (numeric)
+    - Should have unique mail id
+- Appointments
+    - To date is fixed to be upto 1hr from start date
+    - Check for doctors availability (To-do)
+
 
 Objective/Scope:
 

@@ -27,103 +27,81 @@ def doctors():
 @app.route('/add_doctor', methods=['POST'])
 def add_doctor():
     data = request.json
-    doctor_id = db_queries.add_doctor(data)
-    return jsonify({'success': True, 'id': doctor_id})
+    try:
+        doctor_id = db_queries.add_doctor(data)
+        return jsonify({'success': True, 'id': doctor_id}), 201
+    except db_queries.DatabaseError as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 
 @app.route('/edit_doctor/<int:id>', methods=['POST'])
 def edit_doctor_route(id):
     data = request.json
-    db_queries.edit_doctor(id, data)
-    return jsonify({'success': True})
+    try:
+        db_queries.edit_doctor(id, data)
+        return jsonify({'success': True}), 200
+    except db_queries.DatabaseError as e:
+        return jsonify({'success': False, 'error': str(e)}), 404 if "No doctor found" in str(e) else 500
 
 
 @app.route('/delete_doctor/<int:id>', methods=['POST'])
 def delete_doctor_route(id):
-    db_queries.delete_doctor(id)
-    return jsonify({'success': True})
+    try:
+        db_queries.delete_doctor(id)
+        return jsonify({'success': True}), 200
+    except db_queries.DatabaseError as e:
+        return jsonify({'success': False, 'error': str(e)}), 404 if "No doctor found" in str(e) else 500
 
 
 @app.route('/get_doctor/<int:id>')
 def get_doctor_route(id):
-    doctor = db_queries.get_doctor(id)
-    if doctor is None:
-        return jsonify({'error': 'Doctor not found'}), 404
-    return jsonify(doctor)
+    try:
+        doctor = db_queries.get_doctor(id)
+        return jsonify(doctor), 200
+    except db_queries.DatabaseError as e:
+        return jsonify({'error': str(e)}), 404 if "No doctor found" in str(e) else 500
 
 
 @app.route('/patients')
 def patients():
-    patients = Patient.query.all()
+    patients = db_queries.get_all_patients()
     return render_template('patients.html', patients=patients)
 
 
 @app.route('/add_patient', methods=['POST'])
 def add_patient():
     data = request.json
-    address = Address(
-        street=data['street'],
-        county=data['county'],
-        city=data['city'],
-        state=data['state'],
-        country=data['country'],
-        zipcode=data['zipcode']
-    )
-    db.session.add(address)
-    db.session.flush()
-
-    patient = Patient(
-        name=data['name'],
-        phone=data['phone'],
-        email=data['email'],
-        address_id=address.id
-    )
-    db.session.add(patient)
-    db.session.commit()
-    return jsonify({'success': True, 'id': patient.id})
+    try:
+        patient_id = db_queries.add_patient(data)
+        return jsonify({'success': True, 'id': patient_id}), 201
+    except db_queries.DatabaseError as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 
 @app.route('/edit_patient/<int:id>', methods=['POST'])
 def edit_patient(id):
-    patient = Patient.query.get_or_404(id)
     data = request.json
-    patient.name = data['name']
-    patient.phone = data['phone']
-    patient.email = data['email']
-
-    patient.address.street = data['street']
-    patient.address.county = data['county']
-    patient.address.city = data['city']
-    patient.address.state = data['state']
-    patient.address.country = data['country']
-    patient.address.zipcode = data['zipcode']
-
-    db.session.commit()
-    return jsonify({'success': True})
-
+    try:
+        db_queries.edit_patient(id, data)
+        return jsonify({'success': True}), 200
+    except db_queries.DatabaseError as e:
+        return jsonify({'success': False, 'error': str(e)}), 404 if "No patient found" in str(e) else 500
 
 @app.route('/delete_patient/<int:id>', methods=['POST'])
 def delete_patient(id):
-    patient = Patient.query.get_or_404(id)
-    db.session.delete(patient)
-    db.session.commit()
-    return jsonify({'success': True})
-
+    try:
+        db_queries.delete_patient(id)
+        return jsonify({'success': True}), 200
+    except db_queries.DatabaseError as e:
+        return jsonify({'success': False, 'error': str(e)}), 404 if "No patient found" in str(e) else 500
 
 @app.route('/get_patient/<int:id>')
 def get_patient(id):
-    patient = Patient.query.get_or_404(id)
-    return jsonify({
-        'name': patient.name,
-        'phone': patient.phone,
-        'email': patient.email,
-        'street': patient.address.street,
-        'county': patient.address.county,
-        'city': patient.address.city,
-        'state': patient.address.state,
-        'country': patient.address.country,
-        'zipcode': patient.address.zipcode
-    })
+    try:
+        doctor = db_queries.get_patient(id)
+        return jsonify(doctor), 200
+    except db_queries.DatabaseError as e:
+        return jsonify({'error': str(e)}), 404 if "No patient found" in str(e) else 500
 
 
 @app.route('/appointments')

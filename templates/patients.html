@@ -35,7 +35,7 @@
       <td>{{ patient.name }}</td>
       <td>{{ patient.phone }}</td>
       <td>{{ patient.email }}</td>
-      <td>{{ patient.address.formatted_address() }}</td>
+      <td>{{ patient.street }}, {{ patient.county }}, {{ patient.city }}, {{ patient.state }}, {{ patient.country }} - {{ patient.zipcode }}</td>
       <td>
         <button class="btn btn-sm btn-warning" onclick="openEditModal({{ patient.id }})">Edit</button>
       </td>

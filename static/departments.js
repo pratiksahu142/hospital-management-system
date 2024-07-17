@@ -62,6 +62,7 @@ document.getElementById('addDepartmentForm').addEventListener('submit', function
     e.preventDefault();
     const formData = new FormData(e.target);
     const data = Object.fromEntries(formData.entries());
+    const addError = document.getElementById('addError');
 
     fetch('/add_department', {
         method: 'POST',
@@ -75,6 +76,9 @@ document.getElementById('addDepartmentForm').addEventListener('submit', function
         if (data.success) {
             addModal.hide();
             location.reload();
+        } else {
+            addError.textContent = data.message;
+            addError.classList.remove('d-none');
         }
     });
 });
@@ -84,6 +88,7 @@ document.getElementById('editDepartmentForm').addEventListener('submit', functio
     const formData = new FormData(e.target);
     const data = Object.fromEntries(formData.entries());
     const id = data.id;
+    const editError = document.getElementById('editError');
 
     fetch(`/edit_department/${id}`, {
         method: 'POST',
@@ -97,6 +102,9 @@ document.getElementById('editDepartmentForm').addEventListener('submit', functio
         if (data.success) {
             editModal.hide();
             location.reload();
+        } else {
+            editError.textContent = data.message;
+            editError.classList.remove('d-none');
         }
     });
 });

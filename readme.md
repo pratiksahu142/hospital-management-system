@@ -62,7 +62,14 @@ Todo:
 -> patients vs department
 -> doctors vs count of patients
 
-
+Validations (Sindhu Krovvidi):
+- Department 
+    - User should enter only unique departments.
+- Doctor
+    - Valid Phone number (should be numeric)
+    - Valid Email
+    - Valid Experience (should be numeric)
+    - Zip code (numeric)
 
 Objective/Scope:
 

@@ -182,13 +182,18 @@ def get_doctors_by_department(department):
 
 @app.route('/departments')
 def departments():
-    departments = get_all_departments()
+    departments = db_queries.get_all_departments()
     return render_template('departments.html', departments=departments)
 
 
 @app.route('/add_department', methods=['POST'])
 def add_department():
     data = request.json
+    existing_department = Department.query.filter_by(name=data['name']).first()
+
+    if existing_department:
+        return jsonify({'success': False, 'message': 'Department already exists'}), 400
+    
     department = Department(
         name=data['name']
     )
@@ -201,8 +206,12 @@ def add_department():
 def edit_department(id):
     department = Department.query.get_or_404(id)
     data = request.json
-    department.name = data['name']
 
+    existing_department = Department.query.filter_by(name=data['name']).first()
+    if existing_department and existing_department.name == data['name']:
+        return jsonify({'success': False, 'message': 'Department already exists'}), 400
+    
+    department.name = data['name']
     db.session.commit()
     return jsonify({'success': True})
 

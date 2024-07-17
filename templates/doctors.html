@@ -74,6 +74,7 @@
           <div class="mb-3">
             <label for="phone" class="form-label">Phone</label>
             <input type="tel" class="form-control" id="phone" name="phone" required>
+            <div class="alert alert-danger d-none" id="phoneError"></div>
           </div>
           <div class="mb-3">
             <label for="email" class="form-label">Email</label>
@@ -128,6 +129,7 @@
           <div class="mb-3">
             <label for="zipcode" class="form-label">Zipcode</label>
             <input type="text" class="form-control" id="zipcode" name="zipcode" required>
+            <div class="alert alert-danger d-none" id="zipCodeError"></div>
           </div>
           <button type="submit" class="btn btn-primary">Add Doctor</button>
         </form>
@@ -154,6 +156,7 @@
           <div class="mb-3">
             <label for="editPhone" class="form-label">Phone</label>
             <input type="tel" class="form-control" id="editPhone" name="phone" required>
+            <div class="alert alert-danger d-none" id="editPhoneError"></div>
           </div>
           <div class="mb-3">
             <label for="editEmail" class="form-label">Email</label>
@@ -208,6 +211,7 @@
           <div class="mb-3">
             <label for="editZipcode" class="form-label">Zipcode</label>
             <input type="text" class="form-control" id="editZipcode" name="zipcode" required>
+            <div class="alert alert-danger d-none" id="editZipCodeError"></div>
           </div>
           <button type="submit" class="btn btn-primary">Update Doctor</button>
         </form>
@@ -218,5 +222,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="{{ url_for('static', filename='doctors.js') }}"></script>
+
 </body>
 </html>

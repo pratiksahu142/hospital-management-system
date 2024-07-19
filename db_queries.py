@@ -11,12 +11,8 @@ class DatabaseError(Exception):
 def row_to_dict(row):
     return dict(row._mapping)
 
-
-def row_to_dict(row):
-    return dict(row._mapping)
-
-
-def get_all_doctors():
+# Doctor Queries
+def get_all_doctors_with_address_and_dept():
     query = text("""
         SELECT doctor.*, 
                department.name AS department_name,
@@ -34,8 +30,11 @@ def get_all_doctors():
     return [row_to_dict(row) for row in result]
 
 
-def get_all_departments():
-    query = text("SELECT * FROM department")
+def get_all_doctors():
+    query = text("""
+        SELECT *
+        FROM doctor
+    """)
     result = db.session.execute(query)
     return [row_to_dict(row) for row in result]
 
@@ -50,7 +49,7 @@ def add_doctor(data):
 
         if existing_doctor:
             raise DatabaseError("Email already exists in the database.")
-        
+
         query_address = text("""
             INSERT INTO address (street, county, city, state, country, zipcode)
             VALUES (:street, :county, :city, :state, :country, :zipcode)
@@ -87,7 +86,7 @@ def edit_doctor(id, data):
 
         if existing_doctor:
             raise DatabaseError("Email already exists in the database.")
-        
+
         query_doctor = text("""
             UPDATE doctor
             SET name = :name, phone = :phone, email = :email, department_id = :department_id,
@@ -148,6 +147,7 @@ def get_doctor(id):
         raise DatabaseError(f"Error retrieving doctor: {str(e)}")
 
 
+# Patient Queries
 def get_all_patients():
     query = text("""
         SELECT patient.*, 
@@ -164,10 +164,9 @@ def get_all_patients():
     return [row_to_dict(row) for row in result]
 
 
-
 def add_patient(data):
     try:
-        
+
         query_check_email = text("""
             SELECT id FROM patient WHERE email = :email
         """)
@@ -213,7 +212,7 @@ def edit_patient(id, data):
 
         if existing_patient:
             raise DatabaseError("Email already exists in the database.")
-        
+
         query_patient = text("""
             UPDATE patient
             SET name = :name, phone = :phone, email = :email
@@ -237,6 +236,7 @@ def edit_patient(id, data):
     except SQLAlchemyError as e:
         db.session.rollback()
         raise DatabaseError(f"Error editing patient: {str(e)}")
+
 
 def delete_patient(id):
     try:
@@ -269,3 +269,248 @@ def get_patient(id):
         return row_to_dict(patient)
     except SQLAlchemyError as e:
         raise DatabaseError(f"Error retrieving patient: {str(e)}")
+
+
+# Department Queries
+def get_all_departments():
+    query = text("SELECT * FROM department")
+    result = db.session.execute(query)
+    return [row_to_dict(row) for row in result]
+
+
+def add_department(data):
+    try:
+
+        query_check_department_name = text("""
+            SELECT id FROM department WHERE name = :name
+        """)
+        result_department_name = db.session.execute(query_check_department_name, {'name': data['name']})
+        existing_department = result_department_name.fetchone()
+
+        if existing_department:
+            raise DatabaseError("Department already exists in the database.")
+
+        query_department = text("""
+            INSERT INTO department (name)
+            VALUES (:name)
+            RETURNING id
+        """)
+        # data['experience'] = int(data['experience'])
+        result_department = db.session.execute(query_department, data)
+        department_id = result_department.fetchone()[0]
+
+        db.session.commit()
+        return department_id
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        raise DatabaseError(f"Error adding department: {str(e)}")
+
+
+def edit_department(id, data):
+    try:
+
+        query_check_department_name = text("""
+            SELECT id FROM department WHERE name = :name
+        """)
+        result_department_name = db.session.execute(query_check_department_name, {'name': data['name']})
+        existing_department = result_department_name.fetchone()
+
+        if existing_department:
+            raise DatabaseError("Department already exists in the database.")
+
+        query_department = text("""
+            UPDATE department
+            SET name = :name
+            WHERE id = :id
+        """)
+        data['id'] = id
+        db.session.execute(query_department, data)
+
+        db.session.commit()
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        raise DatabaseError(f"Error editing department: {str(e)}")
+
+
+def delete_department(id):
+    try:
+        query = text("""
+            DELETE FROM department WHERE id = :id
+        """)
+        result = db.session.execute(query, {'id': id})
+
+        if result.rowcount == 0:
+            raise DatabaseError(f"No department found with id {id}")
+
+        db.session.commit()
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        raise DatabaseError(f"Error deleting department: {str(e)}")
+
+
+def get_department(id):
+    try:
+        query = text("""
+            SELECT *
+            FROM department
+            WHERE department.id = :id
+        """)
+        result = db.session.execute(query, {'id': id})
+        department = result.fetchone()
+        if department is None:
+            raise DatabaseError(f"No department found with id {id}")
+        return row_to_dict(department)
+    except SQLAlchemyError as e:
+        raise DatabaseError(f"Error retrieving department: {str(e)}")
+
+
+# Appointment Queries
+def get_all_appointments():
+    query = text("""
+        SELECT appointment.*, 
+               doctor.name AS doctor_name,
+               doctor.id AS doctor_id,
+               patient.name AS patient_name,
+               patient.id AS patient_id
+        FROM appointment
+        LEFT JOIN doctor ON appointment.doctor_id = doctor.id
+        LEFT JOIN patient ON appointment.patient_id = patient.id
+    """)
+    result = db.session.execute(query)
+    return [row_to_dict(row) for row in result]
+
+
+def add_appointment(doctor_id, patient_id, from_time, to_time, notes):
+    try:
+        # Check for conflicting appointments
+        conflict_check_query = text("""
+        SELECT COUNT(*) 
+        FROM appointment 
+        WHERE doctor_id = :doctor_id 
+        AND (
+            (:from_time BETWEEN from_time AND to_time)
+            OR (:to_time BETWEEN from_time AND to_time)
+            OR (from_time BETWEEN :from_time AND :to_time)
+        )
+        """)
+
+        result = db.session.execute(conflict_check_query, {
+            'doctor_id': doctor_id,
+            'from_time': from_time,
+            'to_time': to_time
+        })
+
+        if result.scalar() > 0:
+            return {'success': False, 'message': 'Conflicting appointment exists'}
+
+        # If no conflict, add the new appointment
+        insert_query = text("""
+        INSERT INTO appointment (doctor_id, patient_id, from_time, to_time, notes)
+        VALUES (:doctor_id, :patient_id, :from_time, :to_time, :notes)
+        RETURNING id
+        """)
+
+        result = db.session.execute(insert_query, {
+            'doctor_id': doctor_id,
+            'patient_id': patient_id,
+            'from_time': from_time,
+            'to_time': to_time,
+            'notes': notes
+        })
+
+        new_id = result.scalar()
+        db.session.commit()
+
+        return {'success': True, 'id': new_id}
+    except SQLAlchemyError as e:
+        raise DatabaseError(f"Error adding an appointment: {str(e)}")
+
+
+def edit_appointment(appointment_id, doctor_id, patient_id, from_time, to_time, notes):
+    try:
+        # Check for conflicting appointments, excluding the current appointment
+        conflict_check_query = text("""
+        SELECT COUNT(*) 
+        FROM appointment 
+        WHERE doctor_id = :doctor_id 
+        AND id != :appointment_id
+        AND (
+            (:from_time BETWEEN from_time AND to_time)
+            OR (:to_time BETWEEN from_time AND to_time)
+            OR (from_time BETWEEN :from_time AND :to_time)
+        )
+        """)
+
+        result = db.session.execute(conflict_check_query, {
+            'doctor_id': doctor_id,
+            'appointment_id': appointment_id,
+            'from_time': from_time,
+            'to_time': to_time
+        })
+
+        if result.scalar() > 0:
+            return {'success': False, 'message': 'Conflicting appointment exists'}
+
+        # If no conflict, update the appointment
+        update_query = text("""
+        UPDATE appointment 
+        SET doctor_id = :doctor_id, 
+            patient_id = :patient_id, 
+            from_time = :from_time, 
+            to_time = :to_time, 
+            notes = :notes
+        WHERE id = :appointment_id
+        RETURNING id
+        """)
+
+        result = db.session.execute(update_query, {
+            'appointment_id': appointment_id,
+            'doctor_id': doctor_id,
+            'patient_id': patient_id,
+            'from_time': from_time,
+            'to_time': to_time,
+            'notes': notes
+        })
+
+        updated_id = result.scalar()
+        if updated_id is None:
+            return {'success': False, 'message': 'Appointment not found'}
+
+        db.session.commit()
+
+        return {'success': True, 'id': updated_id}
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        raise DatabaseError(f"Error editing an appointment: {str(e)}")
+
+
+def delete_appointment(id):
+    try:
+        query = text("""
+            DELETE FROM appointment WHERE id = :id
+        """)
+        result = db.session.execute(query, {'id': id})
+
+        if result.rowcount == 0:
+            raise DatabaseError(f"No appointment found with id {id}")
+
+        db.session.commit()
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        raise DatabaseError(f"Error deleting appointment: {str(e)}")
+
+
+def get_appointment(id):
+    try:
+        query = text("""
+            SELECT*
+            FROM appointment
+            WHERE appointment.id = :id
+        """)
+        result = db.session.execute(query, {'id': id})
+        appointment = result.fetchone()
+        if appointment is None:
+            raise DatabaseError(f"No appointment found with id {id}")
+        return row_to_dict(appointment)
+    except SQLAlchemyError as e:
+        raise DatabaseError(f"Error retrieving appointment: {str(e)}")

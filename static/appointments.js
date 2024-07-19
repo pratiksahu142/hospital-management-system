@@ -13,7 +13,6 @@ document.addEventListener('DOMContentLoaded', function() {
     e.preventDefault();
     const formData = new FormData(e.target);
         const data = Object.fromEntries(formData.entries());
-        console.log(data)
 
         fetch('/add_appointment', {
             method: 'POST',
@@ -27,6 +26,8 @@ document.addEventListener('DOMContentLoaded', function() {
             if (data.success) {
                 addModal.hide();
                 location.reload();
+            } else {
+                alert(data.message);
             }
         });
   });
@@ -34,7 +35,8 @@ document.addEventListener('DOMContentLoaded', function() {
   // Edit appointment form submission
   document.getElementById('editAppointmentForm').addEventListener('submit', function(e) {
     e.preventDefault();
-    const formData = new FormData(e.target);
+    if (confirm("Are you sure you want to edit this appointment?")) {
+        const formData = new FormData(e.target);
         const data = Object.fromEntries(formData.entries());
         const id = data.id;
 
@@ -50,8 +52,11 @@ document.addEventListener('DOMContentLoaded', function() {
             if (data.success) {
                 editModal.hide();
                 location.reload();
+            } else {
+                alert(data.message);
             }
         });
+    }
   });
     const searchInput = document.getElementById('searchInput');
     const table = document.getElementById('appointmentsTable');
@@ -80,6 +85,32 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     });
+
+    const fromTimeInput = document.getElementById('from_time');
+    const toTimeInput = document.getElementById('to_time');
+
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    fromTimeInput.min = now.toISOString().slice(0, 16);
+
+    fromTimeInput.addEventListener('change', function () {
+    const fromTime = new Date(fromTimeInput.value);
+    const toTime = new Date(fromTime.getTime() + 60 * 60 * 1000);
+
+    toTime.setMinutes(toTime.getMinutes() - toTime.getTimezoneOffset());
+    toTimeInput.value = toTime.toISOString().slice(0, 16);
+    });
+
+    const editfromTimeInput = document.getElementById('edit_from_time');
+    const edittoTimeInput = document.getElementById('edit_to_time');
+
+    editfromTimeInput.addEventListener('change', function () {
+    const fromTime = new Date(editfromTimeInput.value);
+    const toTime = new Date(fromTime.getTime() + 60 * 60 * 1000);
+
+    toTime.setMinutes(toTime.getMinutes() - toTime.getTimezoneOffset());
+    edittoTimeInput.value = toTime.toISOString().slice(0, 16);
+    });
 });
 
 function openAddModal() {
@@ -90,6 +121,7 @@ function openEditModal(id) {
   fetch(`/get_appointment/${id}`)
     .then(response => response.json())
     .then(data => {
+      console.log(data);
       const appointment = data.appointment;
       const doctors = data.doctors;
       const patients = data.patients;
@@ -106,8 +138,8 @@ function openEditModal(id) {
         `<option value="${doctor.id}" ${doctor.id == appointment.doctor_id ? 'selected' : ''}>${doctor.name}</option>`
       ).join('');
 
-      document.getElementById('edit_from_time').value = appointment.from_time.slice(0, 16); // Remove seconds
-      document.getElementById('edit_to_time').value = appointment.to_time.slice(0, 16); // Remove seconds
+      document.getElementById('edit_from_time').value = appointment.from_time.slice(0, 16);
+      document.getElementById('edit_to_time').value = appointment.to_time.slice(0, 16);
       document.getElementById('editNotes').value = appointment.notes;
 
       const editModal = new bootstrap.Modal(document.getElementById('editModal'));

@@ -68,17 +68,20 @@ Validations (Sindhu Krovvidi):
 - Doctor
     - Valid Phone number (should be numeric)
     - Valid Email
-    - Valid Experience (should be numeric)
+    - Valid Experience (should be numeric) // TODO: add check for negative numeric in UI
     - Zip code (numeric)
     - Should have unique mail id
 - Patient
     - Valid Phone number (should be numeric)
-    - Valid Email
+    - Valid Email // TODO: email should match <>@<>.<> pattern
+    - TODO: When clicked on Edit then save without editing anything then email already exists checked which should be avoided
     - Zip code (numeric)
     - Should have unique mail id
 - Appointments
-    - To date is fixed to be upto 1hr from start date
+    - To date is fixed to be upto 1hr from start date // TODO: make it 30 mins
     - Check for doctors availability (To-do)
+    - TODO: When 12 am selected, end time automatically gets to 1 am, should be 1pm
+  
 
 
 Objective/Scope:
@@ -103,3 +106,9 @@ Technical Details:
 - Using SQLAlchemy with SQLite db and models currently and managing SQL queries to accomplish the features in the application
 - Using Dash and plotly to integrate figures into the analytics page of the application
 
+Feedback:
+- Add validations on all the edit/delete
+- Add user login
+- Once login/user management works, add logging of who performed what action
+
+Simplify presentation for a layman to understand

@@ -80,12 +80,12 @@ Zipcode
 Todo:
 
 - ER Diagram - Sindhu
-- age in patients
+- age in patients - done
 - complete department table with another page for its crud - done
-- try replacing the sqlalchemy methods with SQL queries
+- try replacing the sqlalchemy methods with SQL queries - done
 - add validation in add/edit forms - Sindhu
 - try adding one sample plotly figure in dash and then embed using iframe into homepage
-- add code to install if not present for all libraries like flask, sqlalchemy
+- add code to install if not present for all libraries like flask, sqlalchemy - done
 - Add Nurse, Diagnostics, Prescription model and UI
 - Handle cascading delete of department, doctor and patient
 - add multiple plotly figures utilising multiple kind of SQL queries

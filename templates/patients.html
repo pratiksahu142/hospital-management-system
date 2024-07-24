@@ -17,6 +17,7 @@
     <thead>
     <tr>
         <th>Name</th>
+        <th>Date of Birth</th>
         <th>Phone</th>
         <th>Email</th>
         <th>Address</th>
@@ -28,6 +29,7 @@
     {% for patient in patients %}
     <tr>
         <td>{{ patient.name }}</td>
+        <td>{{ patient.dob.strftime('%b %d, %Y') }}</td>
         <td>{{ patient.phone }}</td>
         <td>{{ patient.email }}</td>
         <td>{{ patient.street }}, {{ patient.county }}, {{ patient.city }}, {{ patient.state }}, {{ patient.country }} -
@@ -58,6 +60,11 @@
                     <div class="mb-3">
                         <label for="name" class="form-label">Name</label>
                         <input type="text" class="form-control" id="name" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="dob" class="form-label">Date of Birth</label>
+                        <input type="date" class="form-control" id="dob" name="dob" required>
+                        <div class="alert alert-danger d-none" id="dobError"></div>
                     </div>
                     <div class="mb-3">
                         <label for="phone" class="form-label">Phone</label>
@@ -114,6 +121,11 @@
                     <div class="mb-3">
                         <label for="editName" class="form-label">Name</label>
                         <input type="text" class="form-control" id="editName" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editDob" class="form-label">Date of Birth</label>
+                        <input type="date" class="form-control" id="editDob" name="editDob" required>
+                        <div class="alert alert-danger d-none" id="editDobError"></div>
                     </div>
                     <div class="mb-3">
                         <label for="editPhone" class="form-label">Phone</label>

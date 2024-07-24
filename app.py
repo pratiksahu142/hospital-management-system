@@ -180,12 +180,16 @@ def get_doctor_route(id):
 @login_required
 def patients():
     saved_patients = db_queries.get_all_patients()
+    for patient in saved_patients:
+        patient['dob'] = datetime.fromisoformat(patient['dob'])
     return render_template('patients.html', patients=saved_patients)
 
 
 @app.route('/get_patients')
 def get_patients():
     saved_patients = db_queries.get_all_patients()
+    for patient in saved_patients:
+        patient['dob'] = datetime.fromisoformat(patient['dob'])
     return jsonify([{'id': p.id, 'name': p.name} for p in saved_patients])
 
 

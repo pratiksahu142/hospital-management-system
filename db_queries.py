@@ -186,12 +186,11 @@ def add_patient(data):
         address_id = result_address.fetchone()[0]
 
         query_patient = text("""
-            INSERT INTO patient (name, phone, email, address_id)
-            VALUES (:name, :phone, :email, :address_id)
+            INSERT INTO patient (name, dob, phone, email, address_id)
+            VALUES (:name, :dob, :phone, :email, :address_id)
             RETURNING id
         """)
         data['address_id'] = address_id
-        # data['experience'] = int(data['experience'])
         result_patient = db.session.execute(query_patient, data)
         patient_id = result_patient.fetchone()[0]
 

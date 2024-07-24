@@ -3,136 +3,137 @@
 {% block title %}Appointments{% endblock %}
 
 {% block content %}
-  <h1 class="mb-4">Appointments</h1>
-  <div class="row mb-3">
+<h1 class="mb-4">Appointments</h1>
+<div class="row mb-3">
     <div class="col-md-6">
-      <button class="btn btn-primary" onclick="openAddModal()">Add Appointment</button>
-      <a class="btn btn-success" href="{{ url_for('index') }}">Back to Home</a>
+        <button class="btn btn-primary" onclick="openAddModal()">Add Appointment</button>
+        <a class="btn btn-success" href="{{ url_for('index') }}">Back to Home</a>
     </div>
     <div class="col-md-6">
-      <input type="text" id="searchInput" class="form-control" placeholder="Search...">
+        <input type="text" id="searchInput" class="form-control" placeholder="Search...">
     </div>
-  </div>
-  <table class="table table-striped" id="appointmentsTable">
+</div>
+<table class="table table-striped" id="appointmentsTable">
     <thead>
     <tr>
-      <th>Doctor</th>
-      <th>Patient</th>
-      <th>From Time</th>
-      <th>To Time</th>
-      <th>Notes</th>
-      <th>Edit</th>
-      <th>Delete</th>
+        <th>Doctor</th>
+        <th>Patient</th>
+        <th>From Time</th>
+        <th>To Time</th>
+        <th>Notes</th>
+        <th>Edit</th>
+        <th>Delete</th>
     </tr>
     </thead>
     <tbody>
     {% for appointment in appointments %}
     <tr>
-      <td>{{ appointment.doctor_name }}</td>
-      <td>{{ appointment.patient_name }}</td>
-      <td>{{ appointment.from_time.strftime('%b %d, %Y %I:%M %p') }}</td>
-      <td>{{ appointment.to_time.strftime('%b %d, %Y %I:%M %p') }}</td>
-      <td>{{ appointment.notes }}</td>
-      <td>
-        <button class="btn btn-sm btn-warning" onclick="openEditModal({{ appointment.id }})">Edit</button>
-      </td>
-      <td>
-        <button class="btn btn-sm btn-danger" onclick="deleteAppointment({{ appointment.id }})">Delete</button>
-      </td>
+        <td>{{ appointment.doctor_name }}</td>
+        <td>{{ appointment.patient_name }}</td>
+        <td>{{ appointment.from_time.strftime('%b %d, %Y %I:%M %p') }}</td>
+        <td>{{ appointment.to_time.strftime('%b %d, %Y %I:%M %p') }}</td>
+        <td>{{ appointment.notes }}</td>
+        <td>
+            <button class="btn btn-sm btn-warning" onclick="openEditModal({{ appointment.id }})">Edit</button>
+        </td>
+        <td>
+            <button class="btn btn-sm btn-danger" onclick="deleteAppointment({{ appointment.id }})">Delete</button>
+        </td>
     </tr>
     {% endfor %}
     </tbody>
-  </table>
+</table>
 </div>
 
 <!-- Add Appointment Modal -->
 <div class="modal fade" id="addModal" tabindex="-1">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Add Appointment</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <form id="addAppointmentForm">
-          <div class="mb-3">
-            <label for="patient" class="form-label">Patient</label>
-            <select class="form-control" id="patient" name="patient_id" required>
-              <option value="">Select Patient</option>
-              {% for patient in patients %}
-              <option value="{{ patient.id }}">{{ patient.name }}</option>
-              {% endfor %}
-            </select>
-          </div>
-          <div class="mb-3">
-            <label for="doctor" class="form-label">Doctor</label>
-            <select class="form-control" id="doctor" name="doctor_id" required>
-              <option value="">Select Doctor</option>
-              {% for doctor in doctors %}
-              <option value="{{ doctor.id }}">{{ doctor.name }}</option>
-              {% endfor %}
-            </select>
-          </div>
-          <div class="mb-3">
-            <label for="from_time" class="form-label">From Time</label>
-            <input type="datetime-local" class="form-control" id="from_time" name="from_time" required>
-          </div>
-          <div class="mb-3">
-            <label for="to_time" class="form-label">To Time</label>
-            <input type="datetime-local" class="form-control" id="to_time" name="to_time" required readonly>
-          </div>
-          <div class="mb-3">
-            <label for="notes" class="form-label">Notes</label>
-            <textarea class="form-control" id="notes" name="notes"></textarea>
-          </div>
-          <button type="submit" class="btn btn-primary">Add Appointment</button>
-        </form>
-      </div>
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Appointment</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addAppointmentForm">
+                    <div class="mb-3">
+                        <label for="patient" class="form-label">Patient</label>
+                        <select class="form-control" id="patient" name="patient_id" required>
+                            <option value="">Select Patient</option>
+                            {% for patient in patients %}
+                            <option value="{{ patient.id }}">{{ patient.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="doctor" class="form-label">Doctor</label>
+                        <select class="form-control" id="doctor" name="doctor_id" required>
+                            <option value="">Select Doctor</option>
+                            {% for doctor in doctors %}
+                            <option value="{{ doctor.id }}">{{ doctor.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="from_time" class="form-label">From Time</label>
+                        <input type="datetime-local" class="form-control" id="from_time" name="from_time" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="to_time" class="form-label">To Time</label>
+                        <input type="datetime-local" class="form-control" id="to_time" name="to_time" required readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">Notes</label>
+                        <textarea class="form-control" id="notes" name="notes"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Add Appointment</button>
+                </form>
+            </div>
+        </div>
     </div>
-  </div>
 </div>
 
 <!-- Edit Appointment Modal -->
 <!-- Edit Appointment Modal -->
 <div class="modal fade" id="editModal" tabindex="-1">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Edit Appointment</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <form id="editAppointmentForm">
-          <input type="hidden" id="editAppointmentId" name="id">
-          <div class="mb-3">
-            <label for="editPatient" class="form-label">Patient</label>
-            <select class="form-control" id="editPatient" name="patient_id" required>
-              <!-- Options will be populated dynamically -->
-            </select>
-          </div>
-          <div class="mb-3">
-            <label for="editDoctor" class="form-label">Doctor</label>
-            <select class="form-control" id="editDoctor" name="doctor_id" required>
-              <!-- Options will be populated dynamically -->
-            </select>
-          </div>
-          <div class="mb-3">
-            <label for="edit_from_time" class="form-label">From Time</label>
-            <input type="datetime-local" class="form-control" id="edit_from_time" name="from_time" required>
-          </div>
-          <div class="mb-3">
-            <label for="edit_to_time" class="form-label">To Time</label>
-            <input type="datetime-local" class="form-control" id="edit_to_time" name="to_time" required readonly>
-          </div>
-          <div class="mb-3">
-            <label for="editNotes" class="form-label">Notes</label>
-            <textarea class="form-control" id="editNotes" name="notes"></textarea>
-          </div>
-          <button type="submit" class="btn btn-primary">Update Appointment</button>
-        </form>
-      </div>
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Appointment</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editAppointmentForm">
+                    <input type="hidden" id="editAppointmentId" name="id">
+                    <div class="mb-3">
+                        <label for="editPatient" class="form-label">Patient</label>
+                        <select class="form-control" id="editPatient" name="patient_id" required>
+                            <!-- Options will be populated dynamically -->
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editDoctor" class="form-label">Doctor</label>
+                        <select class="form-control" id="editDoctor" name="doctor_id" required>
+                            <!-- Options will be populated dynamically -->
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_from_time" class="form-label">From Time</label>
+                        <input type="datetime-local" class="form-control" id="edit_from_time" name="from_time" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_to_time" class="form-label">To Time</label>
+                        <input type="datetime-local" class="form-control" id="edit_to_time" name="to_time" required
+                               readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editNotes" class="form-label">Notes</label>
+                        <textarea class="form-control" id="editNotes" name="notes"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Update Appointment</button>
+                </form>
+            </div>
+        </div>
     </div>
-  </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>

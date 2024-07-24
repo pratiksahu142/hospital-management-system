@@ -21,10 +21,12 @@ def load_config():
     with open('configurations/config.yml', 'r') as config_file:
         return yaml.safe_load(config_file)
 
+
 config = load_config()
 doctor_categories = config['doctor_categories']
 admin_username = config['admin_username']
 admin_password = config['admin_password']
+
 
 def login_required(f):
     @wraps(f)

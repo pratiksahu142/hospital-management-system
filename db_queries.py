@@ -1,7 +1,7 @@
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 
-from models import db
+from models import db, User
 
 
 class DatabaseError(Exception):
@@ -10,6 +10,7 @@ class DatabaseError(Exception):
 
 def row_to_dict(row):
     return dict(row._mapping)
+
 
 # Doctor Queries
 def get_all_doctors_with_address_and_dept():
@@ -514,3 +515,28 @@ def get_appointment(id):
         return row_to_dict(appointment)
     except SQLAlchemyError as e:
         raise DatabaseError(f"Error retrieving appointment: {str(e)}")
+
+
+def add_user(username, password, bcrypt, is_admin=False):
+    hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
+    user = User(username=username, password=hashed_password, is_admin=is_admin)
+    db.session.add(user)
+    db.session.commit()
+    return user.id
+
+
+def get_user_by_username(username):
+    return User.query.filter_by(username=username).first()
+
+
+def delete_user(user_id):
+    user = User.query.get(user_id)
+    if user:
+        db.session.delete(user)
+        db.session.commit()
+    else:
+        raise DatabaseError("No user found with the given ID")
+
+
+def get_all_users():
+    return User.query.all()

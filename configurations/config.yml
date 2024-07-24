@@ -2,3 +2,6 @@ doctor_categories:
   - Medicine
   - Surgery
   - Radiologist
+
+admin_username: admin
+admin_password: admin

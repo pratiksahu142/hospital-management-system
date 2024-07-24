@@ -108,7 +108,7 @@ Technical Details:
 
 Feedback:
 - Add validations on all the edit/delete
-- Add user login
+- Add user login - done
 - Once login/user management works, add logging of who performed what action
 
 Simplify presentation for a layman to understand

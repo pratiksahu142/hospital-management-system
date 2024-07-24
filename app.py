@@ -1,11 +1,17 @@
+import os
 from datetime import datetime
+from functools import wraps
+
 import yaml
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, redirect, url_for, session, flash
+from flask_bcrypt import Bcrypt
 
 import db_queries
-from models import init_app, db, Doctor, Patient, Appointment, Department
+from models import init_app
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = os.urandom(24)
+bcrypt = Bcrypt(app)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///hospital.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 init_app(app)
@@ -15,17 +21,114 @@ def load_config():
     with open('configurations/config.yml', 'r') as config_file:
         return yaml.safe_load(config_file)
 
-
 config = load_config()
 doctor_categories = config['doctor_categories']
+admin_username = config['admin_username']
+admin_password = config['admin_password']
+
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+
+    return decorated_function
 
 
 @app.route('/')
 def index():
+    if 'user_id' in session:
+        return redirect(url_for('dashboard'))
     return render_template('index.html')
 
 
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        user = db_queries.get_user_by_username(username)
+        if user and bcrypt.check_password_hash(user.password, password):
+            session['user_id'] = user.id
+            session['is_admin'] = user.is_admin
+            return redirect(url_for('dashboard'))
+        else:
+            flash('Invalid username or password', 'danger')
+    return render_template('login.html')
+
+
+@app.route('/signup', methods=['GET', 'POST'])
+def signup():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        if db_queries.get_user_by_username(username):
+            flash('Username already exists', 'danger')
+        else:
+            if username == admin_username:
+                db_queries.add_user(username, password, bcrypt, True)
+            else:
+                db_queries.add_user(username, password, bcrypt)
+            flash('Account created successfully', 'success')
+            return redirect(url_for('login'))
+    return render_template('signup.html')
+
+
+@app.route('/logout')
+def logout():
+    session.pop('user_id', None)
+    session.pop('is_admin', None)
+    return redirect(url_for('index'))
+
+
+@app.route('/dashboard')
+@login_required
+def dashboard():
+    return render_template('dashboard.html')
+
+
+@app.route('/admin')
+@login_required
+def admin():
+    if not session.get('is_admin'):
+        flash('Access denied. Admin privileges required.', 'danger')
+        return redirect(url_for('dashboard'))
+    users = db_queries.get_all_users()
+    return render_template('admin.html', users=users)
+
+
+@app.route('/admin/create_user', methods=['POST'])
+@login_required
+def admin_create_user(data=None, bypass_admin_check=False):
+    if not bypass_admin_check and not session.get('is_admin'):
+        return jsonify({'success': False, 'error': 'Access denied'}), 403
+
+    if data is None:
+        data = request.json
+
+    try:
+        is_admin = data.get('is_admin') in [True, 'true', 'on', 1]
+        user_id = db_queries.add_user(data['username'], data['password'], bcrypt, is_admin)
+        return jsonify({'success': True, 'id': user_id}), 201
+    except db_queries.DatabaseError as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/admin/delete_user/<int:id>', methods=['POST'])
+@login_required
+def admin_delete_user(id):
+    if not session.get('is_admin'):
+        return jsonify({'success': False, 'error': 'Access denied'}), 403
+    try:
+        db_queries.delete_user(id)
+        return jsonify({'success': True}), 200
+    except db_queries.DatabaseError as e:
+        return jsonify({'success': False, 'error': str(e)}), 404 if "No user found" in str(e) else 500
+
+
 @app.route('/doctors')
+@login_required
 def doctors():
     saved_doctors = db_queries.get_all_doctors_with_address_and_dept()
     saved_departments = db_queries.get_all_departments()
@@ -72,6 +175,7 @@ def get_doctor_route(id):
 
 
 @app.route('/patients')
+@login_required
 def patients():
     saved_patients = db_queries.get_all_patients()
     return render_template('patients.html', patients=saved_patients)
@@ -81,6 +185,7 @@ def patients():
 def get_patients():
     saved_patients = db_queries.get_all_patients()
     return jsonify([{'id': p.id, 'name': p.name} for p in saved_patients])
+
 
 @app.route('/add_patient', methods=['POST'])
 def add_patient():
@@ -121,6 +226,7 @@ def get_patient(id):
 
 
 @app.route('/appointments')
+@login_required
 def appointments():
     saved_appointments = db_queries.get_all_appointments()
     for appointment in saved_appointments:
@@ -128,7 +234,8 @@ def appointments():
         appointment['to_time'] = datetime.fromisoformat(appointment['to_time'])
     saved_doctors = db_queries.get_all_doctors_with_address_and_dept()
     saved_patients = db_queries.get_all_patients()
-    return render_template('appointments.html', appointments=saved_appointments, doctors=saved_doctors, patients=saved_patients)
+    return render_template('appointments.html', appointments=saved_appointments, doctors=saved_doctors,
+                           patients=saved_patients)
 
 
 @app.route('/add_appointment', methods=['POST'])
@@ -204,6 +311,7 @@ def get_appointment(id):
 
 
 @app.route('/departments')
+@login_required
 def departments():
     saved_departments = db_queries.get_all_departments()
     return render_template('departments.html', departments=saved_departments)

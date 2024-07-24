@@ -88,7 +88,7 @@ function openEditModal(id) {
 }
 
 function deleteDoctor(id) {
-  if (confirm("Are you sure you want to delete this doctor?")) {
+  if (confirm("Are you sure you want to delete this doctor? All appointments for this doctor will also be DELETED")) {
     fetch(`/delete_doctor/${id}`, { method: "POST" })
       .then((response) => response.json())
       .then((data) => {

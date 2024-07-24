@@ -39,7 +39,7 @@ function openAddModal() {
 function openEditModal(id) {
 
     const editError = document.getElementById('editError');
-    editError.classList.remove('d-none');
+    editError.classList.add('d-none');
 
     fetch(`/get_department/${id}`)
         .then(response => response.json())
@@ -51,12 +51,14 @@ function openEditModal(id) {
 }
 
 function deleteDepartment(id) {
-    if (confirm('Are you sure you want to delete this Department?')) {
+    if (confirm('Are you sure you want to delete this Department? All doctors and appointments from this Department will be permanently DELETED')) {
         fetch(`/delete_department/${id}`, { method: 'POST' })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
                     location.reload();
+                } else {
+                    console.log(data.error);
                 }
             });
     }
@@ -67,6 +69,7 @@ document.getElementById('addDepartmentForm').addEventListener('submit', function
     const formData = new FormData(e.target);
     const data = Object.fromEntries(formData.entries());
     const addError = document.getElementById('addError');
+    addError.classList.add('d-none');
 
     fetch('/add_department', {
         method: 'POST',
@@ -93,6 +96,7 @@ document.getElementById('editDepartmentForm').addEventListener('submit', functio
     const data = Object.fromEntries(formData.entries());
     const id = data.id;
     const editError = document.getElementById('editError');
+    addError.classList.add('d-none');
 
     fetch(`/edit_department/${id}`, {
         method: 'POST',

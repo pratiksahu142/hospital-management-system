@@ -20,7 +20,7 @@ class Doctor(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     phone = db.Column(db.String(20), nullable=False)
-    email = db.Column(db.String(100), nullable=False)
+    email = db.Column(db.String(100), unique=True, nullable=False)
     department_id = db.Column(db.Integer, db.ForeignKey('department.id'))
     department = db.relationship('Department', backref='doctors')
     category = db.Column(db.String(20), nullable=False)
@@ -47,7 +47,7 @@ class Patient(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100))
     phone = db.Column(db.String(20))
-    email = db.Column(db.String(100))
+    email = db.Column(db.String(100), unique=True)
     dob = db.Column(db.DateTime, nullable=False)
     address_id = db.Column(db.Integer, db.ForeignKey('address.id'))
     address = db.relationship('Address', backref='patients')
@@ -70,4 +70,4 @@ class Appointment(db.Model):
 
 class Department(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100))
+    name = db.Column(db.String(100), unique=True)

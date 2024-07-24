@@ -161,6 +161,9 @@ def edit_doctor_route(id):
 @app.route('/delete_doctor/<int:id>', methods=['POST'])
 def delete_doctor_route(id):
     try:
+        # Delete all appointments for this doctor, cascading delete
+        db_queries.delete_appointments_for_doctor(id)
+
         db_queries.delete_doctor(id)
         return jsonify({'success': True}), 200
     except db_queries.DatabaseError as e:
@@ -216,6 +219,9 @@ def edit_patient(id):
 @app.route('/delete_patient/<int:id>', methods=['POST'])
 def delete_patient(id):
     try:
+        # Delete all appointments for this patient, cascading delete
+        db_queries.delete_appointments_for_patient(id)
+
         db_queries.delete_patient(id)
         return jsonify({'success': True}), 200
     except db_queries.DatabaseError as e:
@@ -346,6 +352,14 @@ def edit_department(id):
 @app.route('/delete_department/<int:id>', methods=['POST'])
 def delete_department(id):
     try:
+        # Find all doctors with department_id, first delete all appointments for these doctors,
+        # then delete all these doctors to accomplish cascading delete
+        doctors = db_queries.get_all_doctors_with_dept(id)
+        for doctor in doctors:
+            print('Deleting doctor: ' + doctor['name'])
+            db_queries.delete_appointments_for_doctor(doctor['id'])
+            db_queries.delete_doctor(doctor['id'])
+
         db_queries.delete_department(id)
         return jsonify({'success': True}), 200
     except db_queries.DatabaseError as e:

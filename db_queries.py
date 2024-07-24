@@ -31,6 +31,16 @@ def get_all_doctors_with_address_and_dept():
     return [row_to_dict(row) for row in result]
 
 
+def get_all_doctors_with_dept(id):
+    query = text("""
+        SELECT doctor.*
+        FROM doctor
+        WHERE doctor.department_id = :id
+    """)
+    result = db.session.execute(query, {'id': id})
+    return [row_to_dict(row) for row in result]
+
+
 def get_all_doctors():
     query = text("""
         SELECT *
@@ -111,10 +121,7 @@ def delete_doctor(id):
         query = text("""
             DELETE FROM doctor WHERE id = :id
         """)
-        result = db.session.execute(query, {'id': id})
-
-        if result.rowcount == 0:
-            raise DatabaseError(f"No doctor found with id {id}")
+        db.session.execute(query, {'id': id})
 
         db.session.commit()
     except SQLAlchemyError as e:
@@ -276,7 +283,6 @@ def add_department(data):
             VALUES (:name)
             RETURNING id
         """)
-        # data['experience'] = int(data['experience'])
         result_department = db.session.execute(query_department, data)
         department_id = result_department.fetchone()[0]
 
@@ -289,6 +295,15 @@ def add_department(data):
 
 def edit_department(id, data):
     try:
+
+        query_check_department_name = text("""
+            SELECT id FROM department WHERE name = :name
+        """)
+        result_department_name = db.session.execute(query_check_department_name, {'name': data['name']})
+        existing_department = result_department_name.fetchone()
+
+        if existing_department:
+            raise DatabaseError("Department already exists in the database.")
 
         query_department = text("""
             UPDATE department
@@ -463,6 +478,35 @@ def delete_appointment(id):
         """)
         result = db.session.execute(query, {'id': id})
 
+        if result.rowcount == 0:
+            raise DatabaseError(f"No appointment found with id {id}")
+
+        db.session.commit()
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        raise DatabaseError(f"Error deleting appointment: {str(e)}")
+
+
+def delete_appointments_for_doctor(id):
+    try:
+        query = text("""
+            DELETE FROM appointment WHERE doctor_id = :id
+        """)
+        db.session.execute(query, {'id': id})
+
+        db.session.commit()
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        raise DatabaseError(f"Error deleting appointment: {str(e)}")
+
+
+def delete_appointments_for_patient(id):
+    try:
+        query = text("""
+            DELETE FROM appointment WHERE patient_id = :id
+        """)
+        result = db.session.execute(query, {'id': id})
+        print(result)
         if result.rowcount == 0:
             raise DatabaseError(f"No appointment found with id {id}")
 

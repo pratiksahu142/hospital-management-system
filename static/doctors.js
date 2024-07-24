@@ -45,6 +45,11 @@ function openAddModal() {
 }
 
 function openEditModal(id) {
+    const phoneError = document.getElementById("editPhoneError");
+    const zipCodeError = document.getElementById("editZipCodeError");
+
+    phoneError.classList.add("d-none");
+    zipCodeError.classList.add("d-none");
   fetch(`/get_doctor/${id}`)
     .then((response) => response.json())
     .then((data) => {
@@ -140,44 +145,46 @@ document
   .getElementById("editDoctorForm")
   .addEventListener("submit", function (e) {
     e.preventDefault();
-    const formData = new FormData(e.target);
-    const data = Object.fromEntries(formData.entries());
-    const id = data.id;
-    const phoneError = document.getElementById("editPhoneError");
-    const zipCodeError = document.getElementById("editZipCodeError");
-    let hasErrors = false;
+    if (confirm("Are you sure you want to edit this Doctor's details?")) {
+        const formData = new FormData(e.target);
+        const data = Object.fromEntries(formData.entries());
+        const id = data.id;
+        const phoneError = document.getElementById("editPhoneError");
+        const zipCodeError = document.getElementById("editZipCodeError");
+        let hasErrors = false;
 
-    phoneError.classList.add("d-none");
-    zipCodeError.classList.add("d-none");
+        phoneError.classList.add("d-none");
+        zipCodeError.classList.add("d-none");
 
-    if (!(data.phone && isValidPhoneNumber(data.phone))) {
-      phoneError.textContent = "Enter a valid phone number!";
-      phoneError.classList.remove("d-none");
-      hasErrors = true;
-    }
+        if (!(data.phone && isValidPhoneNumber(data.phone))) {
+          phoneError.textContent = "Enter a valid phone number!";
+          phoneError.classList.remove("d-none");
+          hasErrors = true;
+        }
 
-    if (!(data.zipcode && isValidNumber(data.zipcode))) {
-      zipCodeError.textContent = "Enter a valid zipcode!";
-      zipCodeError.classList.remove("d-none");
-      hasErrors = true;
-    }
+        if (!(data.zipcode && isValidNumber(data.zipcode))) {
+          zipCodeError.textContent = "Enter a valid zipcode!";
+          zipCodeError.classList.remove("d-none");
+          hasErrors = true;
+        }
 
-    if (!hasErrors) {
-      fetch(`/edit_doctor/${id}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          if (data.success) {
-            editModal.hide();
-            location.reload();
-          } else {
-            alert('Email already exists!')
-          }
-        });
+        if (!hasErrors) {
+          fetch(`/edit_doctor/${id}`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),
+          })
+            .then((response) => response.json())
+            .then((data) => {
+              if (data.success) {
+                editModal.hide();
+                location.reload();
+              } else {
+                alert('Email already exists!')
+              }
+            });
+        }
     }
   });

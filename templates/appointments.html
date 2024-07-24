@@ -76,10 +76,12 @@
                     <div class="mb-3">
                         <label for="from_time" class="form-label">From Time</label>
                         <input type="datetime-local" class="form-control" id="from_time" name="from_time" required>
+                        <div class="alert alert-danger d-none" id="fromTimeError"></div>
                     </div>
                     <div class="mb-3">
                         <label for="to_time" class="form-label">To Time</label>
                         <input type="datetime-local" class="form-control" id="to_time" name="to_time" required readonly>
+                        <div class="alert alert-danger d-none" id="toTimeError"></div>
                     </div>
                     <div class="mb-3">
                         <label for="notes" class="form-label">Notes</label>
@@ -107,23 +109,23 @@
                     <div class="mb-3">
                         <label for="editPatient" class="form-label">Patient</label>
                         <select class="form-control" id="editPatient" name="patient_id" required>
-                            <!-- Options will be populated dynamically -->
                         </select>
                     </div>
                     <div class="mb-3">
                         <label for="editDoctor" class="form-label">Doctor</label>
                         <select class="form-control" id="editDoctor" name="doctor_id" required>
-                            <!-- Options will be populated dynamically -->
                         </select>
                     </div>
                     <div class="mb-3">
                         <label for="edit_from_time" class="form-label">From Time</label>
                         <input type="datetime-local" class="form-control" id="edit_from_time" name="from_time" required>
+                        <div class="alert alert-danger d-none" id="editFromTimeError"></div>
                     </div>
                     <div class="mb-3">
                         <label for="edit_to_time" class="form-label">To Time</label>
                         <input type="datetime-local" class="form-control" id="edit_to_time" name="to_time" required
                                readonly>
+                        <div class="alert alert-danger d-none" id="editToTimeError"></div>
                     </div>
                     <div class="mb-3">
                         <label for="editNotes" class="form-label">Notes</label>

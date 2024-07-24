@@ -37,6 +37,10 @@ function openAddModal() {
 }
 
 function openEditModal(id) {
+
+    const editError = document.getElementById('editError');
+    editError.classList.remove('d-none');
+
     fetch(`/get_department/${id}`)
         .then(response => response.json())
         .then(data => {

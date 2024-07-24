@@ -79,15 +79,6 @@ def add_doctor(data):
 def edit_doctor(id, data):
     try:
 
-        query_check_email = text("""
-            SELECT id FROM doctor WHERE email = :email
-        """)
-        result_email = db.session.execute(query_check_email, {'email': data['email']})
-        existing_doctor = result_email.fetchone()
-
-        if existing_doctor:
-            raise DatabaseError("Email already exists in the database.")
-
         query_doctor = text("""
             UPDATE doctor
             SET name = :name, phone = :phone, email = :email, department_id = :department_id,
@@ -184,7 +175,6 @@ def add_patient(data):
         """)
         result_address = db.session.execute(query_address, data)
         address_id = result_address.fetchone()[0]
-
         query_patient = text("""
             INSERT INTO patient (name, dob, phone, email, address_id)
             VALUES (:name, :dob, :phone, :email, :address_id)
@@ -204,18 +194,9 @@ def add_patient(data):
 def edit_patient(id, data):
     try:
 
-        query_check_email = text("""
-            SELECT id FROM patient WHERE email = :email
-        """)
-        result_email = db.session.execute(query_check_email, {'email': data['email']})
-        existing_patient = result_email.fetchone()
-
-        if existing_patient:
-            raise DatabaseError("Email already exists in the database.")
-
         query_patient = text("""
             UPDATE patient
-            SET name = :name, phone = :phone, email = :email
+            SET name = :name, dob = :dob, phone = :phone, email = :email
             WHERE id = :id
         """)
         data['id'] = id
@@ -308,15 +289,6 @@ def add_department(data):
 
 def edit_department(id, data):
     try:
-
-        query_check_department_name = text("""
-            SELECT id FROM department WHERE name = :name
-        """)
-        result_department_name = db.session.execute(query_check_department_name, {'name': data['name']})
-        existing_department = result_department_name.fetchone()
-
-        if existing_department:
-            raise DatabaseError("Department already exists in the database.")
 
         query_department = text("""
             UPDATE department

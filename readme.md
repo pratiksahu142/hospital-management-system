@@ -109,9 +109,9 @@ Validations (Sindhu Krovvidi):
     - Zip code (numeric)
     - Should have unique mail id
 - Appointments
-    - To date is fixed to be upto 1hr from start date // TODO: make it 30 mins
-    - Check for doctors availability (To-do)
-    - TODO: When 12 am selected, end time automatically gets to 1 am, should be 1pm
+    - To date is fixed to be upto 1hr from start date // TODO: make it 30 mins - Done
+    - Check for doctors availability (To-do) - Done
+    - TODO: When 12 am selected, end time automatically gets to 1 am, should be 1pm - Done
 
 
 Feedback:

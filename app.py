@@ -1,7 +1,8 @@
 import os
 from datetime import datetime
 from functools import wraps
-
+import logging
+from logging.handlers import RotatingFileHandler
 import yaml
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session, flash
 from flask_bcrypt import Bcrypt
@@ -16,6 +17,11 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///hospital.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 init_app(app)
 
+log_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+log_handler = RotatingFileHandler('logs/hospital_app.log', maxBytes=1024 * 1024, backupCount=10)
+log_handler.setFormatter(log_formatter)
+app.logger.addHandler(log_handler)
+app.logger.setLevel(logging.INFO)
 
 def load_config():
     with open('configurations/config.yml', 'r') as config_file:
@@ -34,7 +40,6 @@ def login_required(f):
         if 'user_id' not in session:
             return redirect(url_for('login'))
         return f(*args, **kwargs)
-
     return decorated_function
 
 
@@ -53,9 +58,12 @@ def login():
         user = db_queries.get_user_by_username(username)
         if user and bcrypt.check_password_hash(user.password, password):
             session['user_id'] = user.id
+            session['username'] = user.username
             session['is_admin'] = user.is_admin
+            app.logger.info(f"User '{username}' logged in")
             return redirect(url_for('dashboard'))
         else:
+            app.logger.warning(f"Failed login attempt for username '{username}'")
             flash('Invalid username or password', 'danger')
     return render_template('login.html')
 
@@ -66,12 +74,15 @@ def signup():
         username = request.form['username']
         password = request.form['password']
         if db_queries.get_user_by_username(username):
+            app.logger.warning(f"Failed to create User with username {username}, it already exists")
             flash('Username already exists', 'danger')
         else:
             if username == admin_username:
                 db_queries.add_user(username, password, bcrypt, True)
+                app.logger.info(f"New User created as an Admin privileged user with username {username}")
             else:
                 db_queries.add_user(username, password, bcrypt)
+                app.logger.info(f"New User created as a regular user with username {username}")
             flash('Account created successfully', 'success')
             return redirect(url_for('login'))
     return render_template('signup.html')
@@ -79,7 +90,10 @@ def signup():
 
 @app.route('/logout')
 def logout():
+    username = session.get('username', 'Unknown user')
+    app.logger.info(f"User '{username}' logged out")
     session.pop('user_id', None)
+    session.pop('username', None)
     session.pop('is_admin', None)
     return redirect(url_for('index'))
 
@@ -104,6 +118,8 @@ def admin():
 @login_required
 def admin_create_user(data=None, bypass_admin_check=False):
     if not bypass_admin_check and not session.get('is_admin'):
+        app.logger.warning(f"Insufficient privileges for user '{session['username']}' who is trying"
+                           f" to create admin user with username {data['username']}")
         return jsonify({'success': False, 'error': 'Access denied'}), 403
 
     if data is None:
@@ -112,8 +128,13 @@ def admin_create_user(data=None, bypass_admin_check=False):
     try:
         is_admin = data.get('is_admin') in [True, 'true', 'on', 1]
         user_id = db_queries.add_user(data['username'], data['password'], bcrypt, is_admin)
+        if is_admin:
+            app.logger.info(f"User '{session['username']}' user added an Admin privileged user with username {data['username']}")
+        else:
+            app.logger.info(f"User '{session['username']}' user added a regular user with username {data['username']}")
         return jsonify({'success': True, 'id': user_id}), 201
     except db_queries.DatabaseError as e:
+        app.logger.warning(f"Unsuccessful attempt by '{session['username']}' to create admin user with username {data['username']}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
@@ -121,11 +142,16 @@ def admin_create_user(data=None, bypass_admin_check=False):
 @login_required
 def admin_delete_user(id):
     if not session.get('is_admin'):
+        app.logger.warning(f"Insufficient privileges for user '{session['username']}' who is trying"
+                           f" to delete user with id {id}")
         return jsonify({'success': False, 'error': 'Access denied'}), 403
     try:
+        user_to_delete = db_queries.get_user_by_id(id)
         db_queries.delete_user(id)
+        app.logger.warning(f"User '{session['username']}' user deleted with username {user_to_delete.username}")
         return jsonify({'success': True}), 200
     except db_queries.DatabaseError as e:
+        app.logger.warning(f"User '{session['username']}' user not found with id {id}")
         return jsonify({'success': False, 'error': str(e)}), 404 if "No user found" in str(e) else 500
 
 
@@ -143,6 +169,7 @@ def add_doctor():
     data = request.json
     try:
         doctor_id = db_queries.add_doctor(data)
+        app.logger.info(f"User '{session['username']}' added doctor with details: {data}")
         return jsonify({'success': True, 'id': doctor_id}), 201
     except db_queries.DatabaseError as e:
         return jsonify({'success': False, 'error': str(e)}), 500
@@ -152,7 +179,10 @@ def add_doctor():
 def edit_doctor_route(id):
     data = request.json
     try:
+        previous_doctor = db_queries.get_doctor(id)
+        app.logger.info('Previous values of doctor: ' + str(previous_doctor))
         db_queries.edit_doctor(id, data)
+        app.logger.warning(f"User '{session['username']}' edited doctor with updated values: {data}")
         return jsonify({'success': True}), 200
     except db_queries.DatabaseError as e:
         return jsonify({'success': False, 'error': str(e)}), 404 if "No doctor found" in str(e) else 500
@@ -161,10 +191,14 @@ def edit_doctor_route(id):
 @app.route('/delete_doctor/<int:id>', methods=['POST'])
 def delete_doctor_route(id):
     try:
+        previous_doctor = db_queries.get_doctor(id)
+        app.logger.info('Delete in progress for doctor: ' + str(previous_doctor))
+
         # Delete all appointments for this doctor, cascading delete
         db_queries.delete_appointments_for_doctor(id)
 
         db_queries.delete_doctor(id)
+        app.logger.warning(f"User '{session['username']}' deleted doctor with ID {id} and all related appointments")
         return jsonify({'success': True}), 200
     except db_queries.DatabaseError as e:
         return jsonify({'success': False, 'error': str(e)}), 404 if "No doctor found" in str(e) else 500
@@ -201,6 +235,7 @@ def add_patient():
     data = request.json
     try:
         patient_id = db_queries.add_patient(data)
+        app.logger.info(f"User '{session['username']}' added patient with details: {data}")
         return jsonify({'success': True, 'id': patient_id}), 201
     except db_queries.DatabaseError as e:
         return jsonify({'success': False, 'error': str(e)}), 500
@@ -210,7 +245,10 @@ def add_patient():
 def edit_patient(id):
     data = request.json
     try:
+        previous_patient = db_queries.get_patient(id)
+        app.logger.info('Previous values of patient: ' + str(previous_patient))
         db_queries.edit_patient(id, data)
+        app.logger.warning(f"User '{session['username']}' edited patient with updated values: {data}")
         return jsonify({'success': True}), 200
     except db_queries.DatabaseError as e:
         return jsonify({'success': False, 'error': str(e)}), 404 if "No patient found" in str(e) else 500
@@ -219,10 +257,14 @@ def edit_patient(id):
 @app.route('/delete_patient/<int:id>', methods=['POST'])
 def delete_patient(id):
     try:
+        previous_patient = db_queries.get_patient(id)
+        app.logger.info('Delete in progress for patient: ' + str(previous_patient))
+
         # Delete all appointments for this patient, cascading delete
         db_queries.delete_appointments_for_patient(id)
 
         db_queries.delete_patient(id)
+        app.logger.warning(f"User '{session['username']}' deleted patient with ID {id} and all related appointments")
         return jsonify({'success': True}), 200
     except db_queries.DatabaseError as e:
         return jsonify({'success': False, 'error': str(e)}), 404 if "No patient found" in str(e) else 500
@@ -262,8 +304,11 @@ def add_appointment():
             data['notes']
         )
         if result['success']:
+            app.logger.info(f"User '{session['username']}' successfully created appointment with details {data}")
             return jsonify({'success': True, 'id': result['id']})
         else:
+            app.logger.warning(f"User '{session['username']}' tried creating appointment with details {data} "
+                               f"but failed due to {result['message']}")
             return jsonify({'success': False, 'message': result['message']}), 400
     except db_queries.DatabaseError as e:
         print(str(e))
@@ -274,6 +319,8 @@ def add_appointment():
 def edit_appointment(id):
     data = request.json
     try:
+        previous_appointment = db_queries.get_appointment(id)
+        app.logger.info('Previous values of appointment: ' + str(previous_appointment))
         result = db_queries.edit_appointment(
             id,
             int(data['doctor_id']),
@@ -283,8 +330,11 @@ def edit_appointment(id):
             data['notes']
         )
         if result['success']:
+            app.logger.info(f"User '{session['username']}' successfully updated appointment with details {data}")
             return jsonify({'success': True, 'id': result['id']})
         else:
+            app.logger.warning(f"User '{session['username']}' tried updating appointment with details {data} "
+                               f"but failed due to {result['message']}")
             return jsonify({'success': False, 'message': result['message']}), 400
     except db_queries.DatabaseError as e:
         print(str(e))
@@ -294,7 +344,10 @@ def edit_appointment(id):
 @app.route('/delete_appointment/<int:id>', methods=['POST'])
 def delete_appointment(id):
     try:
+        previous_appointment = db_queries.get_appointment(id)
+        app.logger.info('Delete in progress for appointment: ' + str(previous_appointment))
         db_queries.delete_appointment(id)
+        app.logger.warning(f"User '{session['username']}' successfully deleted appointment with ID {id}")
         return jsonify({'success': True}), 200
     except db_queries.DatabaseError as e:
         return jsonify({'success': False, 'error': str(e)}), 404 if "No appointment found" in str(e) else 500
@@ -334,6 +387,7 @@ def add_department():
     data = request.json
     try:
         department_id = db_queries.add_department(data)
+        app.logger.info(f"User '{session['username']}' successfully created department with details {data}")
         return jsonify({'success': True, 'id': department_id}), 201
     except db_queries.DatabaseError as e:
         return jsonify({'success': False, 'message': 'Department already exists', 'error': str(e)}), 500
@@ -343,7 +397,10 @@ def add_department():
 def edit_department(id):
     data = request.json
     try:
+        previous_department = db_queries.get_department(id)
+        app.logger.info('Previous values of department: ' + str(previous_department))
         department_id = db_queries.edit_department(id, data)
+        app.logger.info(f"User '{session['username']}' successfully updated department with details {data}")
         return jsonify({'success': True, 'id': department_id}), 201
     except db_queries.DatabaseError as e:
         return jsonify({'success': False, 'message': 'Department already exists', 'error': str(e)}), 500
@@ -352,15 +409,18 @@ def edit_department(id):
 @app.route('/delete_department/<int:id>', methods=['POST'])
 def delete_department(id):
     try:
+        previous_department = db_queries.get_department(id)
+        app.logger.info('Delete in progress for department: ' + str(previous_department))
         # Find all doctors with department_id, first delete all appointments for these doctors,
         # then delete all these doctors to accomplish cascading delete
-        doctors = db_queries.get_all_doctors_with_dept(id)
-        for doctor in doctors:
+        doctors_in_dept = db_queries.get_all_doctors_with_dept(id)
+        for doctor in doctors_in_dept:
             print('Deleting doctor: ' + doctor['name'])
             db_queries.delete_appointments_for_doctor(doctor['id'])
             db_queries.delete_doctor(doctor['id'])
 
         db_queries.delete_department(id)
+        app.logger.info(f"User '{session['username']}' successfully deleted department with ID {id}")
         return jsonify({'success': True}), 200
     except db_queries.DatabaseError as e:
         return jsonify({'success': False, 'error': str(e)}), 404 if "No department found" in str(e) else 500

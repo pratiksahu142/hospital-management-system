@@ -505,11 +505,7 @@ def delete_appointments_for_patient(id):
         query = text("""
             DELETE FROM appointment WHERE patient_id = :id
         """)
-        result = db.session.execute(query, {'id': id})
-        print(result)
-        if result.rowcount == 0:
-            raise DatabaseError(f"No appointment found with id {id}")
-
+        db.session.execute(query, {'id': id})
         db.session.commit()
     except SQLAlchemyError as e:
         db.session.rollback()
@@ -542,6 +538,10 @@ def add_user(username, password, bcrypt, is_admin=False):
 
 def get_user_by_username(username):
     return User.query.filter_by(username=username).first()
+
+
+def get_user_by_id(id):
+    return User.query.filter_by(id=id).first()
 
 
 def delete_user(user_id):

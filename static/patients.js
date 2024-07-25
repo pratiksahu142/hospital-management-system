@@ -10,13 +10,13 @@ function isValidNumber(numeric) {
 
 function isValidDob(dob) {
   const date = new Date(dob);
-  console.log(date);
   if (isNaN(date.getTime())) {
     return false;
   }
 
   const currentDate = new Date();
-
+  console.log(currentDate);
+  console.log(date);
   if (date > currentDate) {
     return false;
   }

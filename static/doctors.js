@@ -59,6 +59,7 @@ function openEditModal(id) {
   fetch(`/get_doctor/${id}`)
     .then((response) => response.json())
     .then((data) => {
+      console.log(data);
       document.getElementById("editDoctorId").value = id;
       document.getElementById("editName").value = data.name;
       document.getElementById("editPhone").value = data.phone;

@@ -87,7 +87,7 @@ Todo:
 - try adding one sample plotly figure in dash and then embed using iframe into homepage
 - add code to install if not present for all libraries like flask, sqlalchemy - done
 - Add Nurse, Diagnostics, Prescription model and UI
-- Handle cascading delete of department, doctor and patient
+- Handle cascading delete of department, doctor and patient - done
 - add multiple plotly figures utilising multiple kind of SQL queries
 -> number of patients each day/month/year
 -> patients vs department
@@ -115,7 +115,7 @@ Validations (Sindhu Krovvidi):
 
 
 Feedback:
-- Add validations on all the edit/delete
+- Add validations on all the edit/delete - done
 - Add user login - done
 - Once login/user management works, add logging of who performed what action
 

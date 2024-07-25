@@ -40,6 +40,12 @@ function isValidNumber(numeric) {
   return /^\d+$/.test(numeric);
 }
 
+function validateEmail(email) {
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  return emailRegex.test(email);
+}
+
+
 function openAddModal() {
   addModal.show();
 }
@@ -107,6 +113,8 @@ document
     const data = Object.fromEntries(formData.entries());
     const phoneError = document.getElementById("phoneError");
     const zipCodeError = document.getElementById("zipCodeError");
+    const addValidEmailError = document.getElementById("addValidEmailError");
+    
     let hasErrors = false;
 
     if (!(data.phone && isValidPhoneNumber(data.phone))) {
@@ -118,6 +126,12 @@ document
     if (!(data.zipcode && isValidNumber(data.zipcode))) {
       zipCodeError.textContent = "Enter a valid zipcode!";
       zipCodeError.classList.remove("d-none");
+      hasErrors = true;
+    }
+
+    if (!(data.email && validateEmail(data.email))) {
+      addValidEmailError.textContent = "Enter a valid email!";
+      addValidEmailError.classList.remove("d-none");
       hasErrors = true;
     }
 
@@ -151,6 +165,8 @@ document
         const id = data.id;
         const phoneError = document.getElementById("editPhoneError");
         const zipCodeError = document.getElementById("editZipCodeError");
+        const editValidEmailError = document.getElementById("editValidEmailError");
+
         let hasErrors = false;
 
         phoneError.classList.add("d-none");
@@ -165,6 +181,12 @@ document
         if (!(data.zipcode && isValidNumber(data.zipcode))) {
           zipCodeError.textContent = "Enter a valid zipcode!";
           zipCodeError.classList.remove("d-none");
+          hasErrors = true;
+        }
+
+        if (!(data.email && validateEmail(data.email))) {
+          editValidEmailError.textContent = "Enter a valid email!";
+          editValidEmailError.classList.remove("d-none");
           hasErrors = true;
         }
 

@@ -73,9 +73,11 @@
                         <div class="alert alert-danger d-none" id="phoneError"></div>
                     </div>
                     <div class="mb-3">
-                        <label for="email" class="form-label">Email</label>
-                        <input type="email" class="form-control" id="email" name="email" required>
-                    </div>
+                        <label for="editEmail" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="editEmail" name="email" required>
+                        <div class="alert alert-danger d-none" id="addValidEmailError"></div>
+                    </div>                    
+                                        
                     <div class="mb-3">
                         <label for="department" class="form-label">Department</label>
                         <select class="form-control" id="department" name="department_id" required>
@@ -96,7 +98,7 @@
                     </div>
                     <div class="mb-3">
                         <label for="experience" class="form-label">Experience (years)</label>
-                        <input type="number" class="form-control" id="experience" name="experience" required>
+                        <input type="number" class="form-control" id="experience" name="experience" min="0" required>
                     </div>
                     <div class="mb-3">
                         <label for="degree" class="form-label">Degree</label>
@@ -157,7 +159,8 @@
                     <div class="mb-3">
                         <label for="editEmail" class="form-label">Email</label>
                         <input type="email" class="form-control" id="editEmail" name="email" required>
-                    </div>
+                        <div class="alert alert-danger d-none" id="editValidEmailError"></div>
+                    </div>                                                           
                     <div class="mb-3">
                         <label for="editDepartment" class="form-label">Department</label>
                         <select class="form-control" id="editDepartment" name="department_id" required>
@@ -178,7 +181,7 @@
                     </div>
                     <div class="mb-3">
                         <label for="editExperience" class="form-label">Experience (years)</label>
-                        <input type="number" class="form-control" id="editExperience" name="experience" required>
+                        <input type="number" class="form-control" id="editExperience" name="experience" min="0" required>
                     </div>
                     <div class="mb-3">
                         <label for="editDegree" class="form-label">Degree</label>

@@ -99,12 +99,12 @@ Validations (Sindhu Krovvidi):
 - Doctor
     - Valid Phone number (should be numeric)
     - Valid Email
-    - Valid Experience (should be numeric) // TODO: add check for negative numeric in UI
+    - Valid Experience (should be numeric) // TODO: add check for negative numeric in UI - Done
     - Zip code (numeric)
     - Should have unique mail id
 - Patient
     - Valid Phone number (should be numeric)
-    - Valid Email // TODO: email should match <>@<>.<> pattern
+    - Valid Email // TODO: email should match <>@<>.<> pattern - Done
     - TODO: When clicked on Edit then save without editing anything then email already exists checked which should be avoided
     - Zip code (numeric)
     - Should have unique mail id

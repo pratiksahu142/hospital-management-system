@@ -555,3 +555,77 @@ def delete_user(user_id):
 
 def get_all_users():
     return User.query.all()
+
+def count_patients_per_doctor():
+    query = text("""
+        SELECT 
+            doctor.id AS doctor_id, 
+            doctor.name AS doctor_name,
+            COUNT(DISTINCT patient.id) AS patient_count
+        FROM 
+            doctor
+        LEFT JOIN 
+            appointment ON doctor.id = appointment.doctor_id
+        LEFT JOIN 
+            patient ON appointment.patient_id = patient.id
+        GROUP BY 
+            doctor.id, doctor.name
+        ORDER BY 
+            doctor.id
+    """)
+    result = db.session.execute(query)
+    return [row_to_dict(row) for row in result]
+
+def count_patients_per_department():
+    try:
+        query = text("""
+        SELECT d.name AS department_name, COUNT(p.id) AS patient_count
+        FROM Department d
+        LEFT JOIN Doctor doc ON d.id = doc.department_id
+        LEFT JOIN Appointment a ON doc.id = a.doctor_id
+        LEFT JOIN Patient p ON a.patient_id = p.id
+        GROUP BY d.name
+        """)
+        result = db.session.execute(query)
+        rows = result.mappings().all()
+        
+        data = [{'department_name': row['department_name'], 'patient_count': row['patient_count']} for row in rows]
+        return data
+    except Exception as e:
+        raise DatabaseError(f"An error occurred: {e}")
+
+def count_patients_daily():
+    query = text("""
+    SELECT DATE(a.from_time) AS date, COUNT(DISTINCT p.id) AS patient_count
+    FROM Appointment a
+    JOIN Patient p ON a.patient_id = p.id
+    GROUP BY DATE(a.from_time)
+    ORDER BY DATE(a.from_time)
+    """)
+    result = db.session.execute(query)
+    rows = result.mappings().all()
+    return [{'date': row['date'], 'patient_count': row['patient_count']} for row in rows]
+
+def count_patients_monthly():
+    query = text("""
+    SELECT strftime('%Y-%m', a.from_time) AS date, COUNT(DISTINCT p.id) AS patient_count
+    FROM Appointment a
+    JOIN Patient p ON a.patient_id = p.id
+    GROUP BY strftime('%Y-%m', a.from_time)
+    ORDER BY strftime('%Y-%m', a.from_time)
+    """)
+    result = db.session.execute(query)
+    rows = result.mappings().all()
+    return [{'date': row['date'], 'patient_count': row['patient_count']} for row in rows]
+
+def count_patients_yearly():
+    query = text("""
+    SELECT strftime('%Y', a.from_time) AS date, COUNT(DISTINCT p.id) AS patient_count
+    FROM Appointment a
+    JOIN Patient p ON a.patient_id = p.id
+    GROUP BY strftime('%Y', a.from_time)
+    ORDER BY strftime('%Y', a.from_time)
+    """)
+    result = db.session.execute(query)
+    rows = result.mappings().all()
+    return [{'date': row['date'], 'patient_count': row['patient_count']} for row in rows]

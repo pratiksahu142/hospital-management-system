@@ -6,15 +6,18 @@ from logging.handlers import RotatingFileHandler
 import yaml
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session, flash
 from flask_bcrypt import Bcrypt
-
+from dash import Dash, dcc, html, Input, Output
+import plotly.express as px
+import pandas as pd
 import db_queries
 from models import init_app
 
+# Initialize Flask app
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.urandom(24)
-bcrypt = Bcrypt(app)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///hospital.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+bcrypt = Bcrypt(app)
 init_app(app)
 
 log_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
@@ -22,17 +25,18 @@ log_handler = RotatingFileHandler('logs/hospital_app.log', maxBytes=1024 * 1024,
 log_handler.setFormatter(log_formatter)
 app.logger.addHandler(log_handler)
 app.logger.setLevel(logging.INFO)
+# Initialize Dash app
+dash_app = Dash(__name__, server=app, url_base_pathname='/dash/')
 
+# Load configuration
 def load_config():
     with open('configurations/config.yml', 'r') as config_file:
         return yaml.safe_load(config_file)
-
 
 config = load_config()
 doctor_categories = config['doctor_categories']
 admin_username = config['admin_username']
 admin_password = config['admin_password']
-
 
 def login_required(f):
     @wraps(f)
@@ -41,7 +45,6 @@ def login_required(f):
             return redirect(url_for('login'))
         return f(*args, **kwargs)
     return decorated_function
-
 
 @app.route('/')
 def index():
@@ -434,6 +437,89 @@ def get_department(id):
     except db_queries.DatabaseError as e:
         return jsonify({'error': str(e)}), 404 if "No department found" in str(e) else 500
 
+# Graph for doctor and patient count
+@dash_app.callback(
+    Output('graph', 'figure'),
+    Input('x-axis-column', 'value'),
+    Input('y-axis-column', 'value')
+)
+def update_graph(x_column, y_column):
+    data = db_queries.count_patients_per_doctor()
+    df = pd.DataFrame(data)
+    
+    if x_column not in df.columns:
+        x_column = df.columns[0]
+    if y_column not in df.columns:
+        y_column = df.columns[1]
+
+    fig = px.histogram(df, x=x_column, y=y_column, title="Histogram of Patients per Doctor")
+    return fig
+
+dash_app.layout = html.Div([
+    dcc.Dropdown(
+        id='x-axis-column',
+        options=[{'label': col, 'value': col} for col in ['doctor_name', 'patient_count']],
+        value='doctor_name',
+        placeholder='Select X-axis column'
+    ),
+    dcc.Dropdown(
+        id='y-axis-column',
+        options=[{'label': col, 'value': col} for col in ['doctor_name', 'patient_count']],
+        value='patient_count',
+        placeholder='Select Y-axis column'
+    ),
+    dcc.Graph(id='graph'),
+    dcc.Graph(id='histogram'),
+     dcc.Dropdown(
+        id='time-frame',
+        options=[
+            {'label': 'Daily', 'value': 'daily'},
+            {'label': 'Monthly', 'value': 'monthly'},
+            {'label': 'Yearly', 'value': 'yearly'}
+        ],
+        value='daily'  # Default value
+    ),
+    dcc.Graph(id='time_graph')
+])
+
+# Number of Patients per Department
+@dash_app.callback(
+    Output('histogram', 'figure'),
+    Input('x-axis-column', 'value')
+)
+def update_histogram(x_column):
+    try:
+        data = db_queries.count_patients_per_department()
+        df = pd.DataFrame(data)
+
+        if x_column not in df.columns:
+            x_column = 'department_name'
+        
+        fig = px.histogram(df, x=x_column, y='patient_count', title="Number of Patients per Department")
+        return fig
+
+    except Exception as e:
+        print(f"Error updating histogram: {e}")
+        return {}
+
+@dash_app.callback(
+    Output('time_graph', 'figure'),
+    Input('time-frame', 'value')
+)
+def update_time_graph(time_frame):
+    if time_frame == 'daily':
+        data = db_queries.count_patients_daily()
+    elif time_frame == 'monthly':
+        data = db_queries.count_patients_monthly()
+    elif time_frame == 'yearly':
+        data = db_queries.count_patients_yearly()
+    else:
+        data = []
+    
+    df = pd.DataFrame(data)
+
+    fig = px.line(df, x='date', y='patient_count', title=f'Number of Patients {time_frame.capitalize()}')
+    return fig
 
 if __name__ == '__main__':
     app.run(debug=True)

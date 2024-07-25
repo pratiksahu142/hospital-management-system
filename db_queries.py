@@ -12,7 +12,7 @@ def row_to_dict(row):
     return dict(row._mapping)
 
 
-# Doctor Queries
+# Get all doctors with their address and department details
 def get_all_doctors_with_address_and_dept():
     query = text("""
         SELECT doctor.*, 
@@ -31,6 +31,7 @@ def get_all_doctors_with_address_and_dept():
     return [row_to_dict(row) for row in result]
 
 
+# Get all doctors in a specific department by department ID
 def get_all_doctors_with_dept(id):
     query = text("""
         SELECT doctor.*
@@ -40,7 +41,7 @@ def get_all_doctors_with_dept(id):
     result = db.session.execute(query, {'id': id})
     return [row_to_dict(row) for row in result]
 
-
+# Get all doctors without any additional details
 def get_all_doctors():
     query = text("""
         SELECT *
@@ -49,7 +50,7 @@ def get_all_doctors():
     result = db.session.execute(query)
     return [row_to_dict(row) for row in result]
 
-
+# Add a new doctor with address and other details
 def add_doctor(data):
     try:
         query_check_email = text("""
@@ -85,7 +86,7 @@ def add_doctor(data):
         db.session.rollback()
         raise DatabaseError(f"Error adding doctor: {str(e)}")
 
-
+# Edit an existing doctor's details
 def edit_doctor(id, data):
     try:
 
@@ -115,7 +116,7 @@ def edit_doctor(id, data):
         db.session.rollback()
         raise DatabaseError(f"Error editing doctor: {str(e)}")
 
-
+# Delete a doctor by ID
 def delete_doctor(id):
     try:
         query = text("""
@@ -128,7 +129,7 @@ def delete_doctor(id):
         db.session.rollback()
         raise DatabaseError(f"Error deleting doctor: {str(e)}")
 
-
+# Get a specific doctor's details by ID
 def get_doctor(id):
     try:
         query = text("""
@@ -147,6 +148,7 @@ def get_doctor(id):
 
 
 # Patient Queries
+# Get all patients with their address details
 def get_all_patients():
     query = text("""
         SELECT patient.*, 
@@ -162,7 +164,7 @@ def get_all_patients():
     result = db.session.execute(query)
     return [row_to_dict(row) for row in result]
 
-
+# Add a new patient with address and other details
 def add_patient(data):
     try:
 
@@ -197,7 +199,7 @@ def add_patient(data):
         db.session.rollback()
         raise DatabaseError(f"Error adding patient: {str(e)}")
 
-
+# Edit an existing patient's details
 def edit_patient(id, data):
     try:
 
@@ -225,7 +227,7 @@ def edit_patient(id, data):
         db.session.rollback()
         raise DatabaseError(f"Error editing patient: {str(e)}")
 
-
+# Delete a patient by ID
 def delete_patient(id):
     try:
         query = text("""
@@ -242,6 +244,7 @@ def delete_patient(id):
         raise DatabaseError(f"Error deleting patient: {str(e)}")
 
 
+# Get a specific patient's details by ID
 def get_patient(id):
     try:
         query = text("""
@@ -260,12 +263,13 @@ def get_patient(id):
 
 
 # Department Queries
+# Get all departments
 def get_all_departments():
     query = text("SELECT * FROM department")
     result = db.session.execute(query)
     return [row_to_dict(row) for row in result]
 
-
+# Add a new department
 def add_department(data):
     try:
 
@@ -292,7 +296,7 @@ def add_department(data):
         db.session.rollback()
         raise DatabaseError(f"Error adding department: {str(e)}")
 
-
+# Edit an existing department's details
 def edit_department(id, data):
     try:
 
@@ -318,7 +322,7 @@ def edit_department(id, data):
         db.session.rollback()
         raise DatabaseError(f"Error editing department: {str(e)}")
 
-
+# Delete a department by ID
 def delete_department(id):
     try:
         query = text("""
@@ -334,7 +338,7 @@ def delete_department(id):
         db.session.rollback()
         raise DatabaseError(f"Error deleting department: {str(e)}")
 
-
+# Get a specific department's details by ID
 def get_department(id):
     try:
         query = text("""
@@ -366,7 +370,7 @@ def get_all_appointments():
     result = db.session.execute(query)
     return [row_to_dict(row) for row in result]
 
-
+# Add appointment for a speecific doctor, patient and time
 def add_appointment(doctor_id, patient_id, from_time, to_time, notes):
     try:
         # Check for conflicting appointments
@@ -412,7 +416,7 @@ def add_appointment(doctor_id, patient_id, from_time, to_time, notes):
     except SQLAlchemyError as e:
         raise DatabaseError(f"Error adding an appointment: {str(e)}")
 
-
+# Edit an existing appointment
 def edit_appointment(appointment_id, doctor_id, patient_id, from_time, to_time, notes):
     try:
         # Check for conflicting appointments, excluding the current appointment
@@ -470,7 +474,7 @@ def edit_appointment(appointment_id, doctor_id, patient_id, from_time, to_time, 
         db.session.rollback()
         raise DatabaseError(f"Error editing an appointment: {str(e)}")
 
-
+# Delete an appointment by ID
 def delete_appointment(id):
     try:
         query = text("""
@@ -486,7 +490,7 @@ def delete_appointment(id):
         db.session.rollback()
         raise DatabaseError(f"Error deleting appointment: {str(e)}")
 
-
+# Delete all appointments for a specific doctor
 def delete_appointments_for_doctor(id):
     try:
         query = text("""
@@ -499,7 +503,7 @@ def delete_appointments_for_doctor(id):
         db.session.rollback()
         raise DatabaseError(f"Error deleting appointment: {str(e)}")
 
-
+# Delete all appointments for a specific patient
 def delete_appointments_for_patient(id):
     try:
         query = text("""
@@ -511,7 +515,7 @@ def delete_appointments_for_patient(id):
         db.session.rollback()
         raise DatabaseError(f"Error deleting appointment: {str(e)}")
 
-
+# Retrieve details of a specific appointment by ID
 def get_appointment(id):
     try:
         query = text("""
@@ -527,7 +531,7 @@ def get_appointment(id):
     except SQLAlchemyError as e:
         raise DatabaseError(f"Error retrieving appointment: {str(e)}")
 
-
+# Add a new user with hashed password
 def add_user(username, password, bcrypt, is_admin=False):
     hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
     user = User(username=username, password=hashed_password, is_admin=is_admin)
@@ -536,14 +540,15 @@ def add_user(username, password, bcrypt, is_admin=False):
     return user.id
 
 
+# Retrieve a user by username
 def get_user_by_username(username):
     return User.query.filter_by(username=username).first()
 
-
+# Retrieve a user by ID
 def get_user_by_id(id):
     return User.query.filter_by(id=id).first()
 
-
+# Delete a user by ID
 def delete_user(user_id):
     user = User.query.get(user_id)
     if user:
@@ -553,9 +558,11 @@ def delete_user(user_id):
         raise DatabaseError("No user found with the given ID")
 
 
+# Retrieve all users
 def get_all_users():
     return User.query.all()
 
+# Count the number of patients per doctor
 def count_patients_per_doctor():
     query = text("""
         SELECT 
@@ -576,6 +583,7 @@ def count_patients_per_doctor():
     result = db.session.execute(query)
     return [row_to_dict(row) for row in result]
 
+# Count the number of patients per department
 def count_patients_per_department():
     try:
         query = text("""
@@ -594,6 +602,7 @@ def count_patients_per_department():
     except Exception as e:
         raise DatabaseError(f"An error occurred: {e}")
 
+# Count the number of patients on a daily basis
 def count_patients_daily():
     query = text("""
     SELECT DATE(a.from_time) AS date, COUNT(DISTINCT p.id) AS patient_count
@@ -606,6 +615,7 @@ def count_patients_daily():
     rows = result.mappings().all()
     return [{'date': row['date'], 'patient_count': row['patient_count']} for row in rows]
 
+# Count the number of patients on a monthly basis
 def count_patients_monthly():
     query = text("""
     SELECT strftime('%Y-%m', a.from_time) AS date, COUNT(DISTINCT p.id) AS patient_count
@@ -618,6 +628,7 @@ def count_patients_monthly():
     rows = result.mappings().all()
     return [{'date': row['date'], 'patient_count': row['patient_count']} for row in rows]
 
+# Count the number of patients on a yearly basis
 def count_patients_yearly():
     query = text("""
     SELECT strftime('%Y', a.from_time) AS date, COUNT(DISTINCT p.id) AS patient_count

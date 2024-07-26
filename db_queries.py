@@ -5,14 +5,26 @@ from models import db, User
 
 
 class DatabaseError(Exception):
+    # Custom exception for handling database errors.
     pass
 
+
+
+# Converts a SQLAlchemy row object to a dictionary.   
+# Args:
+#     row (Row): SQLAlchemy row object.
+# Returns:
+#     dict: A dictionary representation of the row.
 
 def row_to_dict(row):
     return dict(row._mapping)
 
 
 # Get all doctors with their address and department details
+# Retrieves all doctors along with their associated department and address details.
+    
+#     Returns:
+#         list of dict: A list of dictionaries where each dictionary contains details of a doctor, their department, and address.
 def get_all_doctors_with_address_and_dept():
     query = text("""
         SELECT doctor.*, 
@@ -32,6 +44,14 @@ def get_all_doctors_with_address_and_dept():
 
 
 # Get all doctors in a specific department by department ID
+#  Retrieves all doctors belonging to a specific department based on department ID.
+    
+#     Args:
+#         id (int): The ID of the department.
+
+#     Returns:
+#         list of dict: A list of dictionaries where each dictionary contains details of a doctor
+#                       in the specified department.
 def get_all_doctors_with_dept(id):
     query = text("""
         SELECT doctor.*
@@ -42,6 +62,10 @@ def get_all_doctors_with_dept(id):
     return [row_to_dict(row) for row in result]
 
 # Get all doctors without any additional details
+#   Retrieves all doctors without additional details.
+    
+#     Returns:
+#         list of dict: A list of dictionaries where each dictionary contains details of a doctor.
 def get_all_doctors():
     query = text("""
         SELECT *
@@ -51,6 +75,16 @@ def get_all_doctors():
     return [row_to_dict(row) for row in result]
 
 # Add a new doctor with address and other details
+    # Adds a new doctor to the database with the provided details, including address.
+    
+    # Args:
+    #     data (dict): A dictionary containing the doctor's details and address.
+
+    # Returns:
+    #     int: The ID of the newly added doctor.
+    
+    # Raises:
+    #     DatabaseError: If there is an error adding the doctor or if the email already exists.
 def add_doctor(data):
     try:
         query_check_email = text("""
@@ -87,6 +121,14 @@ def add_doctor(data):
         raise DatabaseError(f"Error adding doctor: {str(e)}")
 
 # Edit an existing doctor's details
+# Updates the details of an existing doctor.
+    
+# Args:
+#     id (int): The ID of the doctor to be updated.
+#     data (dict): A dictionary containing the updated details of the doctor.
+
+# Raises:
+#     DatabaseError: If there is an error updating the doctor or if the doctor does not exist.
 def edit_doctor(id, data):
     try:
 
@@ -117,6 +159,12 @@ def edit_doctor(id, data):
         raise DatabaseError(f"Error editing doctor: {str(e)}")
 
 # Delete a doctor by ID
+#  Deletes a doctor from the database by their ID.
+#     Args:
+#         id (int): The ID of the doctor to be deleted.
+
+#     Raises:
+#         DatabaseError: If there is an error deleting the doctor or if the doctor does not exist.
 def delete_doctor(id):
     try:
         query = text("""
@@ -130,6 +178,16 @@ def delete_doctor(id):
         raise DatabaseError(f"Error deleting doctor: {str(e)}")
 
 # Get a specific doctor's details by ID
+#  Retrieves the details of a specific doctor by their ID, including address.
+    
+#     Args:
+#         id (int): The ID of the doctor to retrieve.
+
+#     Returns:
+#         dict: A dictionary containing the doctor's details and address.
+
+#     Raises:
+#         DatabaseError: If there is an error retrieving the doctor or if the doctor does not exist.
 def get_doctor(id):
     try:
         query = text("""
@@ -149,6 +207,11 @@ def get_doctor(id):
 
 # Patient Queries
 # Get all patients with their address details
+# Retrieves all patients along with their address details.
+    
+# Returns:
+#     list of dict: A list of dictionaries where each dictionary contains details of a patient
+#                   and their address.
 def get_all_patients():
     query = text("""
         SELECT patient.*, 
@@ -165,6 +228,16 @@ def get_all_patients():
     return [row_to_dict(row) for row in result]
 
 # Add a new patient with address and other details
+#  Adds a new patient to the database with the provided details, including address.
+    
+#     Args:
+#         data (dict): A dictionary containing the patient's details and address.
+
+#     Returns:
+#         int: The ID of the newly added patient.
+    
+#     Raises:
+#         DatabaseError: If there is an error adding the patient or if the email already exists.
 def add_patient(data):
     try:
 
@@ -200,6 +273,14 @@ def add_patient(data):
         raise DatabaseError(f"Error adding patient: {str(e)}")
 
 # Edit an existing patient's details
+#  Updates the details of an existing patient.
+    
+#     Args:
+#         id (int): The ID of the patient to be updated.
+#         data (dict): A dictionary containing the updated details of the patient.
+
+#     Raises:
+#         DatabaseError: If there is an error updating the patient or if the patient does not exist.
 def edit_patient(id, data):
     try:
 
@@ -228,6 +309,15 @@ def edit_patient(id, data):
         raise DatabaseError(f"Error editing patient: {str(e)}")
 
 # Delete a patient by ID
+
+#     Deletes a patient from the database by their ID.
+    
+#     Args:
+#         id (int): The ID of the patient to be deleted.
+
+#     Raises:
+#         DatabaseError: If there is an error deleting the patient or if the patient does not exist.
+
 def delete_patient(id):
     try:
         query = text("""
@@ -245,6 +335,16 @@ def delete_patient(id):
 
 
 # Get a specific patient's details by ID
+#     Retrieves the details of a specific patient by their ID, including address.
+    
+#     Args:
+#         id (int): The ID of the patient to retrieve.
+
+#     Returns:
+#         dict: A dictionary containing the patient's details and address.
+
+#     Raises:
+#         DatabaseError: If there is an error retrieving the patient or if the patient does not exist.
 def get_patient(id):
     try:
         query = text("""
@@ -270,6 +370,16 @@ def get_all_departments():
     return [row_to_dict(row) for row in result]
 
 # Add a new department
+# Adds a new department to the database if it does not already exist.
+    
+# Args:
+#     data (dict): A dictionary containing the department name.
+        
+# Returns:
+#     int: The ID of the newly added department.
+        
+# Raises:
+#     DatabaseError: If a department with the same name already exists or if there is an error adding the department.
 def add_department(data):
     try:
 
@@ -297,6 +407,14 @@ def add_department(data):
         raise DatabaseError(f"Error adding department: {str(e)}")
 
 # Edit an existing department's details
+#     Edits the details of an existing department by its ID.
+    
+#     Args:
+#         id (int): The ID of the department to edit.
+#         data (dict): A dictionary containing the new department name.
+        
+#     Raises:
+#         DatabaseError: If a department with the same name already exists or if there is an error editing the department.
 def edit_department(id, data):
     try:
 
@@ -323,6 +441,14 @@ def edit_department(id, data):
         raise DatabaseError(f"Error editing department: {str(e)}")
 
 # Delete a department by ID
+    
+    # Deletes a department from the database by its ID.
+    
+    # Args:
+    #     id (int): The ID of the department to delete.
+        
+    # Raises:
+    #     DatabaseError: If the department does not exist or if there is an error deleting the department.
 def delete_department(id):
     try:
         query = text("""
@@ -339,6 +465,16 @@ def delete_department(id):
         raise DatabaseError(f"Error deleting department: {str(e)}")
 
 # Get a specific department's details by ID
+# Retrieves the details of a specific department by its ID.
+    
+#     Args:
+#         id (int): The ID of the department to retrieve.
+        
+#     Returns:
+#         dict: A dictionary containing the department's details.
+        
+#     Raises:
+#         DatabaseError: If the department does not exist or if there is an error retrieving the department.
 def get_department(id):
     try:
         query = text("""
@@ -356,6 +492,10 @@ def get_department(id):
 
 
 # Appointment Queries
+# Retrieves all appointments along with associated doctor and patient details.
+    
+#     Returns:
+#         list: A list of dictionaries, each containing details of an appointment along with the doctor's and patient's names and IDs.
 def get_all_appointments():
     query = text("""
         SELECT appointment.*, 
@@ -370,7 +510,20 @@ def get_all_appointments():
     result = db.session.execute(query)
     return [row_to_dict(row) for row in result]
 
-# Add appointment for a speecific doctor, patient and time
+#  Adds a new appointment to the database after checking for conflicts.
+    
+#     Args:
+#         doctor_id (int): The ID of the doctor for the appointment.
+#         patient_id (int): The ID of the patient for the appointment.
+#         from_time (datetime): The start time of the appointment.
+#         to_time (datetime): The end time of the appointment.
+#         notes (str): Additional notes for the appointment.
+        
+#     Returns:
+#         dict: A dictionary with success status and the ID of the newly added appointment.
+        
+#     Raises:
+#         DatabaseError: If there is an error adding the appointment or if a conflicting appointment exists.
 def add_appointment(doctor_id, patient_id, from_time, to_time, notes):
     try:
         # Check for conflicting appointments
@@ -416,7 +569,21 @@ def add_appointment(doctor_id, patient_id, from_time, to_time, notes):
     except SQLAlchemyError as e:
         raise DatabaseError(f"Error adding an appointment: {str(e)}")
 
-# Edit an existing appointment
+#  Edits an existing appointment, checking for conflicts and updating its details.
+    
+#     Args:
+#         appointment_id (int): The ID of the appointment to edit.
+#         doctor_id (int): The ID of the doctor for the appointment.
+#         patient_id (int): The ID of the patient for the appointment.
+#         from_time (datetime): The new start time of the appointment.
+#         to_time (datetime): The new end time of the appointment.
+#         notes (str): The new notes for the appointment.
+        
+#     Returns:
+#         dict: A dictionary with success status and the ID of the updated appointment.
+        
+#     Raises:
+#         DatabaseError: If there is an error editing the appointment or if a conflicting appointment exists.
 def edit_appointment(appointment_id, doctor_id, patient_id, from_time, to_time, notes):
     try:
         # Check for conflicting appointments, excluding the current appointment
@@ -474,7 +641,13 @@ def edit_appointment(appointment_id, doctor_id, patient_id, from_time, to_time, 
         db.session.rollback()
         raise DatabaseError(f"Error editing an appointment: {str(e)}")
 
-# Delete an appointment by ID
+# Deletes an appointment from the database by its ID.
+    
+#     Args:
+#         id (int): The ID of the appointment to delete.
+        
+#     Raises:
+#         DatabaseError: If the appointment does not exist or if there is an error deleting the appointment.
 def delete_appointment(id):
     try:
         query = text("""
@@ -490,7 +663,13 @@ def delete_appointment(id):
         db.session.rollback()
         raise DatabaseError(f"Error deleting appointment: {str(e)}")
 
-# Delete all appointments for a specific doctor
+#  Deletes all appointments associated with a specific doctor by their ID.
+    
+#     Args:
+#         id (int): The ID of the doctor whose appointments are to be deleted.
+        
+#     Raises:
+#         DatabaseError: If there is an error deleting the appointments.
 def delete_appointments_for_doctor(id):
     try:
         query = text("""
@@ -503,7 +682,13 @@ def delete_appointments_for_doctor(id):
         db.session.rollback()
         raise DatabaseError(f"Error deleting appointment: {str(e)}")
 
-# Delete all appointments for a specific patient
+#   Deletes all appointments associated with a specific patient by their ID.
+    
+#     Args:
+#         id (int): The ID of the patient whose appointments are to be deleted.
+        
+#     Raises:
+#         DatabaseError: If there is an error deleting the appointments.
 def delete_appointments_for_patient(id):
     try:
         query = text("""
@@ -515,7 +700,16 @@ def delete_appointments_for_patient(id):
         db.session.rollback()
         raise DatabaseError(f"Error deleting appointment: {str(e)}")
 
-# Retrieve details of a specific appointment by ID
+#   Retrieves the details of a specific appointment by its ID.
+    
+#     Args:
+#         id (int): The ID of the appointment to retrieve.
+        
+#     Returns:
+#         dict: A dictionary containing the appointment's details.
+        
+#     Raises:
+#         DatabaseError: If the appointment does not exist or if there is an error retrieving the appointment.   
 def get_appointment(id):
     try:
         query = text("""
@@ -531,7 +725,20 @@ def get_appointment(id):
     except SQLAlchemyError as e:
         raise DatabaseError(f"Error retrieving appointment: {str(e)}")
 
-# Add a new user with hashed password
+# Adds a new user with a hashed password to the database.
+
+#     Args:
+#         username (str): The username of the new user.
+#         password (str): The plain text password for the new user.
+#         bcrypt: The bcrypt object used for hashing passwords.
+#         is_admin (bool): Whether the user is an admin. Defaults to False.
+
+#     Returns:
+#         int: The ID of the newly created user.
+
+#     Raises:
+#         DatabaseError: If there is an error adding the user to the database.
+    
 def add_user(username, password, bcrypt, is_admin=False):
     hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
     user = User(username=username, password=hashed_password, is_admin=is_admin)
@@ -540,15 +747,34 @@ def add_user(username, password, bcrypt, is_admin=False):
     return user.id
 
 
-# Retrieve a user by username
+# Retrieves a user from the database by their username.
+
+# Args:
+#     username (str): The username of the user to retrieve.
+
+# Returns:
+#     User: The user object if found, otherwise None.
 def get_user_by_username(username):
     return User.query.filter_by(username=username).first()
 
-# Retrieve a user by ID
+# Retrieves a user from the database by their ID.
+
+# Args:
+#     id (int): The ID of the user to retrieve.
+
+# Returns:
+#     User: The user object if found, otherwise None.
 def get_user_by_id(id):
     return User.query.filter_by(id=id).first()
 
-# Delete a user by ID
+# Deletes a user from the database by their ID.
+
+#     Args:
+#         user_id (int): The ID of the user to delete.
+
+#     Raises:
+#         DatabaseError: If no user is found with the given ID or if there is an error deleting the user.
+    
 def delete_user(user_id):
     user = User.query.get(user_id)
     if user:
@@ -558,11 +784,17 @@ def delete_user(user_id):
         raise DatabaseError("No user found with the given ID")
 
 
-# Retrieve all users
+# Retrieves all users from the database.
+
+#     Returns:
+#         list: A list of all user objects.
 def get_all_users():
     return User.query.all()
 
-# Count the number of patients per doctor
+# Counts the number of patients per doctor.
+
+#     Returns:
+#         list: A list of dictionaries with doctor ID, name, and patient count.
 def count_patients_per_doctor():
     query = text("""
         SELECT 
@@ -583,7 +815,13 @@ def count_patients_per_doctor():
     result = db.session.execute(query)
     return [row_to_dict(row) for row in result]
 
-# Count the number of patients per department
+# Counts the number of patients per department.
+
+#     Returns:
+#         list: A list of dictionaries with department name and patient count.
+
+#     Raises:
+#         DatabaseError: If there is an error retrieving the data.
 def count_patients_per_department():
     try:
         query = text("""
@@ -602,7 +840,10 @@ def count_patients_per_department():
     except Exception as e:
         raise DatabaseError(f"An error occurred: {e}")
 
-# Count the number of patients on a daily basis
+# Counts the number of patients on a daily basis.
+
+#     Returns:
+#         list: A list of dictionaries with date and patient count.
 def count_patients_daily():
     query = text("""
     SELECT DATE(a.from_time) AS date, COUNT(DISTINCT p.id) AS patient_count
@@ -615,7 +856,10 @@ def count_patients_daily():
     rows = result.mappings().all()
     return [{'date': row['date'], 'patient_count': row['patient_count']} for row in rows]
 
-# Count the number of patients on a monthly basis
+# Counts the number of patients on a monthly basis.
+
+#     Returns:
+#         list: A list of dictionaries with month and year, and patient count.
 def count_patients_monthly():
     query = text("""
     SELECT strftime('%Y-%m', a.from_time) AS date, COUNT(DISTINCT p.id) AS patient_count
@@ -628,7 +872,11 @@ def count_patients_monthly():
     rows = result.mappings().all()
     return [{'date': row['date'], 'patient_count': row['patient_count']} for row in rows]
 
-# Count the number of patients on a yearly basis
+# Counts the number of patients on a yearly basis.
+
+#     Returns:
+#         list: A list of dictionaries with year and patient count.
+
 def count_patients_yearly():
     query = text("""
     SELECT strftime('%Y', a.from_time) AS date, COUNT(DISTINCT p.id) AS patient_count

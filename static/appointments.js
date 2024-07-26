@@ -119,29 +119,49 @@ document.addEventListener('DOMContentLoaded', function() {
     const table = document.getElementById('appointmentsTable');
     const rows = table.getElementsByTagName('tr');
 
-    searchInput.addEventListener('keyup', function() {
+    const fromDateInput = document.getElementById('fromDate');
+    const toDateInput = document.getElementById('toDate');
+
+    function filterAppointments() {
         const searchTerm = searchInput.value.toLowerCase();
+        const fromDate = fromDateInput.value ? new Date(fromDateInput.value) : null;
+        const toDate = toDateInput.value ? new Date(toDateInput.value) : null;
 
         for (let i = 1; i < rows.length; i++) {
             const row = rows[i];
             const cells = row.getElementsByTagName('td');
             let found = false;
+            let dateInRange = true;
 
             for (let j = 0; j < cells.length; j++) {
                 const cellText = cells[j].textContent.toLowerCase();
                 if (cellText.includes(searchTerm)) {
                     found = true;
-                    break;
+                }
+
+                // Check if the appointment date is within the selected range
+                if (j === 2) {
+                    const appointmentDate = new Date(cellText);
+                    if (fromDate && appointmentDate < fromDate) {
+                        dateInRange = false;
+                    }
+                    if (toDate && appointmentDate > toDate) {
+                        dateInRange = false;
+                    }
                 }
             }
 
-            if (found) {
+            if (found && dateInRange) {
                 row.style.display = '';
             } else {
                 row.style.display = 'none';
             }
         }
-    });
+    }
+
+    searchInput.addEventListener('keyup', filterAppointments);
+    fromDateInput.addEventListener('change', filterAppointments);
+    toDateInput.addEventListener('change', filterAppointments);
 
     const fromTimeInput = document.getElementById('from_time');
     const toTimeInput = document.getElementById('to_time');
@@ -183,7 +203,6 @@ function openEditModal(id) {
   fetch(`/get_appointment/${id}`)
     .then(response => response.json())
     .then(data => {
-      console.log(data);
       const appointment = data.appointment;
       const doctors = data.doctors;
       const patients = data.patients;

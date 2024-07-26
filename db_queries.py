@@ -205,6 +205,155 @@ def get_doctor(id):
         raise DatabaseError(f"Error retrieving doctor: {str(e)}")
 
 
+# Get all nurses with details
+#   Retrieves all nurses with details.
+
+#     Returns:
+#         list of dict: A list of dictionaries where each dictionary contains details of a nurse.
+def get_all_nurses():
+    query = text("""
+        SELECT n.*, 
+               doctor.name AS doctor_name,
+               address.street,
+               address.county,
+               address.city,
+               address.state,
+               address.country,
+               address.zipcode
+        FROM nurse n
+        LEFT JOIN doctor ON n.doctor_id = doctor.id
+        LEFT JOIN address ON n.address_id = address.id
+    """)
+    result = db.session.execute(query)
+    return [row_to_dict(row) for row in result]
+
+# Add a new nurse with address and other details
+# Adds a new nurse to the database with the provided details, including address.
+
+# Args:
+#     data (dict): A dictionary containing the nurse's details and address.
+
+# Returns:
+#     int: The ID of the newly added nurse.
+
+# Raises:
+#     DatabaseError: If there is an error adding the nurse or if the email already exists.
+def add_nurse(data):
+    try:
+        query_check_email = text("""
+            SELECT id FROM nurse WHERE email = :email
+        """)
+        result_email = db.session.execute(query_check_email, {'email': data['email']})
+        existing_nurse = result_email.fetchone()
+
+        if existing_nurse:
+            raise DatabaseError("Email already exists in the database.")
+
+        query_address = text("""
+            INSERT INTO address (street, county, city, state, country, zipcode)
+            VALUES (:street, :county, :city, :state, :country, :zipcode)
+            RETURNING id
+        """)
+        result_address = db.session.execute(query_address, data)
+        address_id = result_address.fetchone()[0]
+
+        query_nurse = text("""
+            INSERT INTO nurse (name, phone, email, doctor_id, address_id)
+            VALUES (:name, :phone, :email, :doctor_id, :address_id)
+            RETURNING id
+        """)
+        data['address_id'] = address_id
+        result_nurse = db.session.execute(query_nurse, data)
+        nurse_id = result_nurse.fetchone()[0]
+
+        db.session.commit()
+        return nurse_id
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        raise DatabaseError(f"Error adding nurse: {str(e)}")
+
+# Edit an existing nurse's details
+# Updates the details of an existing nurse.
+
+# Args:
+#     id (int): The ID of the nurse to be updated.
+#     data (dict): A dictionary containing the updated details of the nurse.
+
+# Raises:
+#     DatabaseError: If there is an error updating the nurse or if the nurse does not exist.
+def edit_nurse(id, data):
+    try:
+        query_doctor = text("""
+            UPDATE nurse
+            SET name = :name, phone = :phone, email = :email, doctor_id = :doctor_id
+            WHERE id = :id
+        """)
+        data['id'] = id
+        result = db.session.execute(query_doctor, data)
+
+        if result.rowcount == 0:
+            raise DatabaseError(f"No nurse found with id {id}")
+        query_address = text("""
+            UPDATE address
+            SET street = :street, county = :county, city = :city, state = :state,
+                country = :country, zipcode = :zipcode
+            WHERE id = (SELECT address_id FROM nurse WHERE id = :id)
+        """)
+        db.session.execute(query_address, data)
+
+        db.session.commit()
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        raise DatabaseError(f"Error editing nurse: {str(e)}")
+
+# Delete a nurse by ID
+#  Deletes a nurse from the database by their ID.
+#     Args:
+#         id (int): The ID of the nurse to be deleted.
+
+#     Raises:
+#         DatabaseError: If there is an error deleting the nurse or if the nurse does not exist.
+def delete_nurse(id):
+    try:
+        query = text("""
+            DELETE FROM nurse WHERE id = :id
+        """)
+        db.session.execute(query, {'id': id})
+
+        db.session.commit()
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        raise DatabaseError(f"Error deleting nurse: {str(e)}")
+
+# Get a specific nurse's details by ID
+#  Retrieves the details of a specific nurse by their ID, including address.
+
+#     Args:
+#         id (int): The ID of the nurse to retrieve.
+
+#     Returns:
+#         dict: A dictionary containing the nurse's details and address.
+
+#     Raises:
+#         DatabaseError: If there is an error retrieving the nurse or if the nurse does not exist.
+def get_nurse(id):
+    try:
+        query = text("""
+            SELECT n.*, d.name AS doctor_name, a.street, a.county, a.city, a.state, a.country, a.zipcode
+            FROM nurse n
+            LEFT JOIN address a ON n.address_id = a.id
+            LEFT JOIN doctor d ON n.doctor_id = d.id
+            WHERE n.id = :id
+        """)
+        result = db.session.execute(query, {'id': id})
+        nurse = result.fetchone()
+        if nurse is None:
+            raise DatabaseError(f"No nurse found with id {id}")
+        return row_to_dict(nurse)
+    except SQLAlchemyError as e:
+        raise DatabaseError(f"Error retrieving nurse: {str(e)}")
+
+
 # Patient Queries
 # Get all patients with their address details
 # Retrieves all patients along with their address details.

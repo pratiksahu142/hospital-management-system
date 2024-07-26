@@ -9,8 +9,16 @@
         <button class="btn btn-primary" onclick="openAddModal()">Add Appointment</button>
         <a class="btn btn-success" href="{{ url_for('index') }}">Back to Home</a>
     </div>
+</div>
+<div class="row mb-3">
     <div class="col-md-6">
         <input type="text" id="searchInput" class="form-control" placeholder="Search...">
+    </div>
+    <div class="col-md-3">
+        <input type="date" id="fromDate" class="form-control" placeholder="From Date">
+    </div>
+    <div class="col-md-3">
+        <input type="date" id="toDate" class="form-control" placeholder="To Date">
     </div>
 </div>
 <table class="table table-striped" id="appointmentsTable">
@@ -94,7 +102,6 @@
     </div>
 </div>
 
-<!-- Edit Appointment Modal -->
 <!-- Edit Appointment Modal -->
 <div class="modal fade" id="editModal" tabindex="-1">
     <div class="modal-dialog">

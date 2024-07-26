@@ -216,6 +216,70 @@ def get_doctor_route(id):
         return jsonify({'error': str(e)}), 404 if "No doctor found" in str(e) else 500
 
 
+@app.route('/nurses')
+@login_required
+def nurses():
+    saved_nurses = db_queries.get_all_nurses()
+    saved_doctors = db_queries.get_all_doctors()
+    return render_template('nurses.html', nurses=saved_nurses, doctors=saved_doctors)
+
+
+@app.route('/get_nurses')
+def get_nurses():
+    saved_nurses = db_queries.get_all_nurses()
+    return jsonify([{'id': n.id, 'name': n.name} for n in saved_nurses])
+
+
+@app.route('/add_nurse', methods=['POST'])
+def add_nurse():
+    data = request.json
+    try:
+        nurse_id = db_queries.add_nurse(data)
+        app.logger.info(f"User '{session['username']}' added nurse with details: {data}")
+        return jsonify({'success': True, 'id': nurse_id}), 201
+    except db_queries.DatabaseError as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/edit_nurse/<int:id>', methods=['POST'])
+def edit_nurse(id):
+    data = request.json
+    try:
+        previous_nurse = db_queries.get_nurse(id)
+        app.logger.info('Previous values of nurse: ' + str(previous_nurse))
+        db_queries.edit_nurse(id, data)
+        app.logger.warning(f"User '{session['username']}' edited nurse with updated values: {data}")
+        return jsonify({'success': True}), 200
+    except db_queries.DatabaseError as e:
+        return jsonify({'success': False, 'error': str(e)}), 404 if "No nurse found" in str(e) else 500
+
+
+@app.route('/delete_nurse/<int:id>', methods=['POST'])
+def delete_nurse(id):
+    try:
+        previous_nurse = db_queries.get_nurse(id)
+        app.logger.info('Delete in progress for nurse: ' + str(previous_nurse))
+
+        db_queries.delete_nurse(id)
+        app.logger.warning(f"User '{session['username']}' deleted nurse with ID {id} ")
+        return jsonify({'success': True}), 200
+    except db_queries.DatabaseError as e:
+        return jsonify({'success': False, 'error': str(e)}), 404 if "No nurse found" in str(e) else 500
+
+
+@app.route('/get_nurse/<int:id>')
+def get_nurse(id):
+    try:
+        nurse = db_queries.get_nurse(id)
+        saved_doctors = db_queries.get_all_doctors()
+        return jsonify({
+            'nurse': nurse,
+            'doctors': [{'id': d['id'], 'name': d['name']} for d in saved_doctors]
+        })
+    except db_queries.DatabaseError as e:
+        return jsonify({'error': str(e)}), 404 if "No nurse found" in str(e) else 500
+
+
 @app.route('/patients')
 @login_required
 def patients():

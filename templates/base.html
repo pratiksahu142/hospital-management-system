@@ -25,6 +25,7 @@
             <ul class="navbar-nav me-auto mb-2 mb-md-0">
                 {% if session.get('user_id') %}
                 <li class="nav-item"><a class="nav-link" href="{{ url_for('doctors') }}">Doctors</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('nurses') }}">Nurses</a></li>
                 <li class="nav-item"><a class="nav-link" href="{{ url_for('patients') }}">Patients</a></li>
                 <li class="nav-item"><a class="nav-link" href="{{ url_for('appointments') }}">Appointments</a></li>
                 <li class="nav-item"><a class="nav-link" href="{{ url_for('departments') }}">Departments</a></li>

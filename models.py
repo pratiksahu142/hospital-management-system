@@ -56,6 +56,20 @@ class Patient(db.Model):
         return f"{self.street}, {self.county}, {self.city}, {self.state}, {self.country} - {self.zipcode}"
 
 
+class Nurse(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100))
+    phone = db.Column(db.String(20))
+    email = db.Column(db.String(100), unique=True)
+    doctor_id = db.Column(db.Integer, db.ForeignKey('doctor.id'))
+    doctor = db.relationship('Doctor', backref='nurses')
+    address_id = db.Column(db.Integer, db.ForeignKey('address.id'))
+    address = db.relationship('Address', backref='nurses')
+
+    def formatted_address(self):
+        return f"{self.street}, {self.county}, {self.city}, {self.state}, {self.country} - {self.zipcode}"
+
+
 class Appointment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     doctor_id = db.Column(db.Integer, db.ForeignKey('doctor.id'), nullable=False)

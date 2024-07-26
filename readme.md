@@ -119,4 +119,31 @@ Feedback:
 - Add user login - done
 - Once login/user management works, add logging of who performed what action
 
+TODO:
+- add comments on SQL queries - Done
+- Try to come up with SQL views, functions, triggers
+- interactive visualisation
+- Mail Professor for sample of technical reports and updating rubrics to include points for UI
+
 Simplify presentation for a layman to understand
+
+
+· How many patients were registered each day? - Done
+
+· How many patients were registered each month? - Done
+
+· How many patients were registered each year? - Done
+
+· How many patients were handled by each department? - Done
+
+· How many patients were handled by each doctor? - Done
+
+· What are the details of all the doctors in the system? - Done
+
+· What are the upcoming appointments for the next week? - Done
+
+· What are the details of all the nurses in the system? - Done
+
+· Are there any conflicting appointments (appointments scheduled for the same doctor at the same time)? - Done
+
+· How many diagnostics reports have been generated for each patient?

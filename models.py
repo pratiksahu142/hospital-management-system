@@ -90,13 +90,13 @@ class Prescription(db.Model):
     appointment = db.relationship('Appointment', backref='prescriptions')
 
 
-# class Diagnostic(db.Model):
-#     id = db.Column(db.Integer, primary_key=True)
-#     appointment_id = db.Column(db.Integer, db.ForeignKey('appointment.id'), nullable=False)
-#     test_name = db.Column(db.Text)
-#     test_report = db.Column(db.Text)
-#
-#     appointment = db.relationship('Appointment', backref='diagnostics')
+class Diagnostic(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    appointment_id = db.Column(db.Integer, db.ForeignKey('appointment.id'), nullable=False)
+    test_name = db.Column(db.Text)
+    test_report = db.Column(db.Text)
+
+    appointment = db.relationship('Appointment', backref='diagnostics')
 
 
 class Department(db.Model):

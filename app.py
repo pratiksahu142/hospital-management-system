@@ -4,19 +4,30 @@ from functools import wraps
 import logging
 from logging.handlers import RotatingFileHandler
 import yaml
-from flask import Flask, render_template, request, jsonify, redirect, url_for, session, flash
+from flask import Flask, render_template, request, jsonify, redirect, url_for, session, flash, send_from_directory
 from flask_bcrypt import Bcrypt
 from dash import Dash, dcc, html, Input, Output
 import plotly.express as px
 import pandas as pd
 import db_queries
 from models import init_app
+from werkzeug.utils import secure_filename
+import os
 
 # Initialize Flask app
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.urandom(24)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///hospital.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['UPLOAD_FOLDER'] = 'uploads'
+app.config['LOGS_FOLDER'] = 'logs'
+
+if not os.path.exists(app.config['UPLOAD_FOLDER']):
+    os.makedirs(app.config['UPLOAD_FOLDER'])
+
+if not os.path.exists(app.config['LOGS_FOLDER']):
+    os.makedirs(app.config['LOGS_FOLDER'])
+
 bcrypt = Bcrypt(app)
 init_app(app)
 
@@ -416,6 +427,7 @@ def delete_appointment(id):
         previous_appointment = db_queries.get_appointment(id)
         app.logger.info('Delete in progress for appointment: ' + str(previous_appointment))
         db_queries.delete_prescription_by_appointment_id(id)  # Delete associated prescription first, if any
+        db_queries.delete_diagnostic_by_appointment_id(id)  # Delete associated diagnostic first, if any
         db_queries.delete_appointment(id)
         app.logger.warning(f"User '{session['username']}' successfully deleted appointment with ID {id}")
         return jsonify({'success': True}), 200
@@ -475,6 +487,55 @@ def get_prescription(id):
         return jsonify(prescription), 200
     except db_queries.DatabaseError as e:
         return jsonify({'error': str(e)}), 404 if "No prescription found" in str(e) else 500
+
+
+@app.route('/add_diagnostic', methods=['POST'])
+def add_diagnostic():
+    try:
+        appointment_id = request.form.get('appointment_id')
+        test_name = request.form.get('test_name')
+        test_report = request.form.get('test_report')
+        data = {
+            'test_name': test_name,
+            'test_report': test_report
+        }
+        result = db_queries.add_diagnostic(
+            int(appointment_id),
+            data
+        )
+
+        if result['success']:
+            app.logger.info(f"User '{session['username']}' successfully added diagnostic with details {test_name}")
+            return jsonify({'success': True, 'id': result['id']})
+        else:
+            app.logger.warning(f"User '{session['username']}' tried adding diagnostic with details {test_name} "
+                               f"but failed due to {result['message']}")
+            return jsonify({'success': False, 'message': result['message']}), 400
+    except db_queries.DatabaseError as e:
+        print(str(e))
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+
+@app.route('/get_diagnostic/<int:id>')
+def get_diagnostic(id):
+    try:
+        diagnostics = db_queries.get_diagnostic_by_appointment_id(id)
+        return jsonify(diagnostics), 200
+    except db_queries.DatabaseError as e:
+        return jsonify({'error': str(e)}), 404 if "No diagnostics found" in str(e) else 500
+
+
+@app.route('/delete_diagnostic/<int:id>', methods=['POST'])
+def delete_diagnostic(id):
+    try:
+        previous_diagnostic = db_queries.get_diagnostic(id)
+        app.logger.info('Delete in progress for diagnostic: ' + str(previous_diagnostic))
+        db_queries.delete_diagnostic(id)
+        app.logger.warning(f"User '{session['username']}' successfully deleted diagnostic with ID {id}")
+        return jsonify({'success': True}), 200
+    except db_queries.DatabaseError as e:
+        return jsonify({'success': False, 'error': str(e)}), 404 if "No diagnostic found" in str(e) else 500
+
 
 
 @app.route('/departments')

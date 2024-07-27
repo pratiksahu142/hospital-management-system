@@ -287,3 +287,85 @@ document.getElementById('prescriptionForm').addEventListener('submit', function(
         });
     }
 });
+
+function showDiagnosticModal(appointmentId) {
+    fetch(`/get_diagnostic/${appointmentId}`)
+        .then(response => response.json())
+        .then(diagnostics => {
+            const diagnosticList = document.getElementById('diagnosticList');
+            diagnosticList.innerHTML = '';
+            diagnostics.forEach(diagnostic => {
+                diagnosticList.innerHTML += `
+                    <div id="diagnostic${diagnostic.id}" class="card mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">${diagnostic.test_name}</h5>
+                            <p class="card-text">${diagnostic.test_report}</p>
+                            <button onclick="deleteDiagnosticReport(${diagnostic.id})" class="btn btn-danger">Delete</button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            // Add the "Add a report" button with w-100 class
+            diagnosticList.innerHTML += `
+                <button type="button" class="btn btn-primary w-100 mt-2" onclick="openAddDiagnosticModal(${appointmentId})">
+                    Add a report
+                </button>
+            `;
+
+            const showDiagnosticModal = new bootstrap.Modal(document.getElementById('showDiagnosticModal'));
+            showDiagnosticModal.show();
+        })
+        .catch(error => console.error('Error:', error));
+}
+
+
+function openAddDiagnosticModal(appointmentId) {
+    const showDiagnosticModal = bootstrap.Modal.getInstance(document.getElementById('showDiagnosticModal'));
+    showDiagnosticModal.hide();
+
+    // Set the appointment_id in the form
+    document.getElementById('diagnosticAppointmentId').value = appointmentId;
+
+    const addDiagnosticModal = new bootstrap.Modal(document.getElementById('addDiagnosticModal'));
+    addDiagnosticModal.show();
+}
+
+// Add Diagnostic
+document.getElementById('addDiagnosticForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    fetch('/add_diagnostic', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Diagnostic added successfully');
+            const addDiagnosticModal = bootstrap.Modal.getInstance(document.getElementById('addDiagnosticModal'));
+            addDiagnosticModal.hide();
+            showDiagnosticModal(formData.get('appointment_id'));
+        } else {
+            alert('Error: ' + data.message);
+        }
+    })
+    .catch(error => console.error('Error:', error));
+});
+
+// Delete Diagnostic Report
+function deleteDiagnosticReport(id) {
+    if (confirm('Are you sure you want to delete this diagnostic report?')) {
+        fetch(`/delete_diagnostic/${id}`, { method: 'POST' })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById(`diagnostic${id}`).remove();
+                    alert('Diagnostic report deleted successfully');
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            })
+            .catch(error => console.error('Error:', error));
+    }
+}

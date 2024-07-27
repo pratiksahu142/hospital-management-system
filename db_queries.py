@@ -987,6 +987,145 @@ def get_prescription_by_appointment_id(id):
     except SQLAlchemyError as e:
         raise DatabaseError(f"Error retrieving prescription: {str(e)}")
 
+
+
+# Add a new diagnostic
+#  Adds a new diagnostic to the database for an appointment
+
+#     Args:
+#        id: Appointment ID for which diagnostic is added
+#      data: Contains information for diagnostic name and reports
+
+#     Returns:
+#         int: The ID of the newly added diagnostic.
+
+#     Raises:
+#         DatabaseError: If there is an error adding the diagnostic
+def add_diagnostic(id, data):
+    try:
+        print(data)
+        diagnostic_input = {
+            'appointment_id': id,
+            'test_name': data['test_name'],
+            'test_report': data['test_report']
+        }
+        query_diagnostic = text("""
+            INSERT INTO diagnostic (appointment_id, test_name, test_report)
+            VALUES (:appointment_id, :test_name, :test_report)
+            RETURNING id
+        """)
+        result_diagnostic = db.session.execute(query_diagnostic, diagnostic_input)
+        diagnostic_id = result_diagnostic.fetchone()[0]
+
+        db.session.commit()
+        return {'success': True, 'id': diagnostic_id}
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        raise DatabaseError(f"Error adding diagnostic: {str(e)}")
+
+
+# Delete a diagnostic by diagnostic ID
+
+#     Deletes a diagnostic from the database by their diagnostic ID.
+
+#     Args:
+#         id (int): The diagnostic ID of the diagnostic to be deleted.
+
+#     Raises:
+#         DatabaseError: If there is an error deleting the diagnostic or if the diagnostic does not exist.
+
+def delete_diagnostic(id):
+    try:
+        query = text("""
+            DELETE FROM diagnostic WHERE id = :id
+        """)
+        result = db.session.execute(query, {'id': id})
+
+        if result.rowcount == 0:
+            raise DatabaseError(f"No diagnostic found with id {id}")
+
+        db.session.commit()
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        raise DatabaseError(f"Error deleting diagnostic: {str(e)}")
+
+
+
+# Delete all diagnostics for an Appointment ID
+
+#     Deletes all diagnostics from the database by their Appointment ID.
+
+#     Args:
+#         id (int): The Appointment ID of the diagnostics to be deleted.
+
+#     Raises:
+#         DatabaseError: If there is an error deleting the diagnostic or if the diagnostic does not exist.
+
+def delete_diagnostic_by_appointment_id(id):
+    try:
+        query = text("""
+            DELETE FROM diagnostic WHERE appointment_id = :id
+        """)
+        result = db.session.execute(query, {'id': id})
+
+        if result.rowcount == 0:
+            raise DatabaseError(f"No diagnostic found with id {id}")
+
+        db.session.commit()
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        raise DatabaseError(f"Error deleting diagnostic: {str(e)}")
+
+
+# Get diagnostics details by diagnostic ID
+#     Retrieves the details of a specific diagnostic by their ID
+
+#     Args:
+#         id (int): The ID of the diagnostic_id whose details to retrieve.
+
+#     Returns:
+#         dict: A dictionary containing the diagnostic's details
+
+#     Raises:
+#         DatabaseError: If there is an error retrieving the diagnostic or if the diagnostic does not exist.
+def get_diagnostic(id):
+    try:
+        query = text("""
+            SELECT *
+            FROM diagnostic
+            WHERE diagnostic.id = :id
+        """)
+        result = db.session.execute(query, {'id': id})
+        diagnostic = result.fetchone()
+        if diagnostic is None:
+            raise DatabaseError(f"No diagnostic found with id {id}")
+        return row_to_dict(diagnostic)
+    except SQLAlchemyError as e:
+        raise DatabaseError(f"Error retrieving diagnostic: {str(e)}")
+
+# Get all diagnostics details by Appointment ID
+#     Retrieves the details of a specific diagnostic by their ID
+
+#     Args:
+#         id (int): The ID of the appointment_id whose diagnostics to retrieve.
+
+#     Returns:
+#         dict: A dictionary containing the diagnostic's details
+
+#     Raises:
+#         DatabaseError: If there is an error retrieving the diagnostic or if the diagnostic does not exist.
+def get_diagnostic_by_appointment_id(id):
+    try:
+        query = text("""
+            SELECT *
+            FROM diagnostic
+            WHERE diagnostic.appointment_id = :id
+        """)
+        result = db.session.execute(query, {'id': id})
+        return [row_to_dict(row) for row in result]
+    except SQLAlchemyError as e:
+        raise DatabaseError(f"Error retrieving diagnostic: {str(e)}")
+
 # Adds a new user with a hashed password to the database.
 
 #     Args:

@@ -82,6 +82,23 @@ class Appointment(db.Model):
     patient = db.relationship('Patient', backref='appointments')
 
 
+class Prescription(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    appointment_id = db.Column(db.Integer, db.ForeignKey('appointment.id'), nullable=False)
+    prescription_notes = db.Column(db.Text)
+
+    appointment = db.relationship('Appointment', backref='prescriptions')
+
+
+# class Diagnostic(db.Model):
+#     id = db.Column(db.Integer, primary_key=True)
+#     appointment_id = db.Column(db.Integer, db.ForeignKey('appointment.id'), nullable=False)
+#     test_name = db.Column(db.Text)
+#     test_report = db.Column(db.Text)
+#
+#     appointment = db.relationship('Appointment', backref='diagnostics')
+
+
 class Department(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), unique=True)

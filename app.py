@@ -370,6 +370,8 @@ def add_appointment():
             datetime.fromisoformat(data['to_time']),
             data['notes']
         )
+
+        db_queries.add_prescription(result['id'])
         if result['success']:
             app.logger.info(f"User '{session['username']}' successfully created appointment with details {data}")
             return jsonify({'success': True, 'id': result['id']})
@@ -413,6 +415,7 @@ def delete_appointment(id):
     try:
         previous_appointment = db_queries.get_appointment(id)
         app.logger.info('Delete in progress for appointment: ' + str(previous_appointment))
+        db_queries.delete_prescription_by_appointment_id(id)  # Delete associated prescription first, if any
         db_queries.delete_appointment(id)
         app.logger.warning(f"User '{session['username']}' successfully deleted appointment with ID {id}")
         return jsonify({'success': True}), 200
@@ -440,6 +443,38 @@ def get_appointment(id):
         })
     except db_queries.DatabaseError as e:
         return jsonify({'error': str(e)}), 404 if "No appointment found" in str(e) else 500
+
+
+@app.route('/edit_prescription/<int:id>', methods=['POST'])
+def edit_prescription_for_appointment(id):
+    data = request.json
+    try:
+        previous_prescription = db_queries.get_prescription_by_appointment_id(id)
+        app.logger.info('Previous values of prescription: ' + str(previous_prescription))
+        result = db_queries.edit_prescription_by_appointment_id(
+            id,
+            data['prescription_notes']
+        )
+        if result['success']:
+            app.logger.info(f"User '{session['username']}' successfully updated prescription with details {data}")
+            return jsonify({'success': True})
+        else:
+            app.logger.warning(f"User '{session['username']}' tried updating prescription with details {data} "
+                               f"but failed due to {result['message']}")
+            return jsonify({'success': False, 'message': result['message']}), 400
+    except db_queries.DatabaseError as e:
+        app.logger.warning(f"User '{session['username']}' tried updating prescription with details {data} "
+                           f"but failed due to {str(e)}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+
+@app.route('/get_prescription/<int:id>')
+def get_prescription(id):
+    try:
+        prescription = db_queries.get_prescription_by_appointment_id(id)
+        return jsonify(prescription), 200
+    except db_queries.DatabaseError as e:
+        return jsonify({'error': str(e)}), 404 if "No prescription found" in str(e) else 500
 
 
 @app.route('/departments')
@@ -501,35 +536,17 @@ def get_department(id):
     except db_queries.DatabaseError as e:
         return jsonify({'error': str(e)}), 404 if "No department found" in str(e) else 500
 
-# Graph for doctor and patient count
-@dash_app.callback(
-    Output('graph', 'figure'),
-    Input('x-axis-column', 'value'),
-    Input('y-axis-column', 'value')
-)
-def update_graph(x_column, y_column):
-    data = db_queries.count_patients_per_doctor()
-    df = pd.DataFrame(data)
-    
-    if x_column not in df.columns:
-        x_column = df.columns[0]
-    if y_column not in df.columns:
-        y_column = df.columns[1]
-
-    fig = px.histogram(df, x=x_column, y=y_column, title="Histogram of Patients per Doctor")
-    return fig
-
 dash_app.layout = html.Div([
     dcc.Dropdown(
         id='x-axis-column',
-        options=[{'label': col, 'value': col} for col in ['doctor_name', 'patient_count']],
-        value='doctor_name',
+        options=[{'label': col, 'value': col} for col in ['Doctor Name', 'Number of Patients']],
+        value='Doctor Name',
         placeholder='Select X-axis column'
     ),
     dcc.Dropdown(
         id='y-axis-column',
-        options=[{'label': col, 'value': col} for col in ['doctor_name', 'patient_count']],
-        value='patient_count',
+        options=[{'label': col, 'value': col} for col in ['Doctor Name', 'Number of Patients']],
+        value='Number of Patients',
         placeholder='Select Y-axis column'
     ),
     dcc.Graph(id='graph'),
@@ -541,25 +558,43 @@ dash_app.layout = html.Div([
             {'label': 'Monthly', 'value': 'monthly'},
             {'label': 'Yearly', 'value': 'yearly'}
         ],
-        value='daily'  # Default value
+        value='daily'
     ),
     dcc.Graph(id='time_graph')
 ])
+
+# Graph for doctor and patient count
+@dash_app.callback(
+    Output('graph', 'figure'),
+    Input('x-axis-column', 'value'),
+    Input('y-axis-column', 'value')
+)
+def update_doctor_patient_histogram(x_column, y_column):
+    data = db_queries.count_patients_per_doctor()
+    df = pd.DataFrame(data)
+    print(df.columns)
+    df.rename(columns={'doctor_name': 'Doctor Name', 'patient_count': 'Number of Patients'}, inplace=True)
+
+    if x_column not in df.columns:
+        x_column = 'Doctor Name'
+    if y_column not in df.columns:
+        y_column = 'Number of Patients'
+
+    fig = px.histogram(df, x=x_column, y=y_column, title="Histogram of Patients per Doctor")
+    return fig
 
 # Number of Patients per Department
 @dash_app.callback(
     Output('histogram', 'figure'),
     Input('x-axis-column', 'value')
 )
-def update_histogram(x_column):
+def update_dept_patient_histogram(x_column):
     try:
         data = db_queries.count_patients_per_department()
         df = pd.DataFrame(data)
-
-        if x_column not in df.columns:
-            x_column = 'department_name'
+        df.rename(columns={'department_name': 'Department Name', 'patient_count': 'Number of Patients'}, inplace=True)
         
-        fig = px.histogram(df, x=x_column, y='patient_count', title="Number of Patients per Department")
+        fig = px.histogram(df, x='Department Name', y='Number of Patients', title="Number of Patients per Department")
         return fig
 
     except Exception as e:

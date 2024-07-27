@@ -29,6 +29,7 @@
         <th>From Time</th>
         <th>To Time</th>
         <th>Notes</th>
+        <th>Prescription</th>
         <th>Edit</th>
         <th>Delete</th>
     </tr>
@@ -42,6 +43,9 @@
         <td>{{ appointment.to_time.strftime('%b %d, %Y %I:%M %p') }}</td>
         <td>{{ appointment.notes }}</td>
         <td>
+            <button class="btn btn-sm btn-success" onclick="openPrescriptionModal({{ appointment.id }})">Show <i class="fas fa-prescription"></i></button>
+        </td>
+        <td>
             <button class="btn btn-sm btn-warning" onclick="openEditModal({{ appointment.id }})">Edit</button>
         </td>
         <td>
@@ -51,6 +55,29 @@
     {% endfor %}
     </tbody>
 </table>
+</div>
+
+<!-- Prescription Modal -->
+<div class="modal fade" id="prescriptionModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Prescription</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="prescriptionForm">
+                    <input type="hidden" id="prescriptionAppointmentId" name="appointment_id">
+                    <div class="mb-3">
+                        <label for="prescription_notes" class="form-label">Prescription Notes</label>
+                        <textarea class="form-control" id="prescription_notes" name="prescription_notes"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- Add Appointment Modal -->

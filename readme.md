@@ -124,6 +124,7 @@ TODO:
 - Try to come up with SQL views, functions, triggers
 - interactive visualisation
 - Mail Professor for sample of technical reports and updating rubrics to include points for UI
+- Add ORDER BY in required Queries
 
 Simplify presentation for a layman to understand
 

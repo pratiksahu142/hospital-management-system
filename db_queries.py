@@ -874,6 +874,119 @@ def get_appointment(id):
     except SQLAlchemyError as e:
         raise DatabaseError(f"Error retrieving appointment: {str(e)}")
 
+
+# Add a new prescription
+#  Adds a new blank prescription to the database for an appointment
+
+#     Args:
+#        id: Appointment ID for which prescription is added
+
+#     Returns:
+#         int: The ID of the newly added prescription.
+
+#     Raises:
+#         DatabaseError: If there is an error adding the prescription
+def add_prescription(id):
+    try:
+        prescription_notes = ''
+        data = {
+            'appointment_id': id,
+            'prescription_notes': prescription_notes
+        }
+        query_prescription = text("""
+            INSERT INTO prescription (appointment_id, prescription_notes)
+            VALUES (:appointment_id, :prescription_notes)
+            RETURNING id
+        """)
+        result_prescription = db.session.execute(query_prescription, data)
+        prescription_id = result_prescription.fetchone()[0]
+
+        db.session.commit()
+        return prescription_id
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        raise DatabaseError(f"Error adding prescription: {str(e)}")
+
+# Edit an existing prescription's details for appointment ID
+#  Updates the details of an existing prescription.
+
+#     Args:
+#         id (int): The ID of the appointment whose prescription is to be updated.
+#         data (dict): prescription notes
+
+#     Raises:
+#         DatabaseError: If there is an error updating the prescription or if the prescription does not exist.
+def edit_prescription_by_appointment_id(id, prescription_notes):
+    try:
+        data = {
+            'appointment_id': id,
+            'prescription_notes': prescription_notes
+        }
+        query_prescription = text("""
+            UPDATE prescription
+            SET prescription_notes = :prescription_notes
+            WHERE appointment_id = :appointment_id
+        """)
+        db.session.execute(query_prescription, data)
+
+        db.session.commit()
+        return {'success': True}
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        raise DatabaseError(f"Error editing prescription: {str(e)}")
+
+# Delete a prescription by appointment ID
+
+#     Deletes a prescription from the database by their appointment ID.
+
+#     Args:
+#         id (int): The appointment ID of the prescription to be deleted.
+
+#     Raises:
+#         DatabaseError: If there is an error deleting the prescription or if the prescription does not exist.
+
+def delete_prescription_by_appointment_id(id):
+    try:
+        query = text("""
+            DELETE FROM prescription WHERE appointment_id = :id
+        """)
+        result = db.session.execute(query, {'id': id})
+
+        if result.rowcount == 0:
+            raise DatabaseError(f"No prescription found with id {id}")
+
+        db.session.commit()
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        raise DatabaseError(f"Error deleting prescription: {str(e)}")
+
+
+# Get a specific prescription's details by ID
+#     Retrieves the details of a specific prescription by their ID
+
+#     Args:
+#         id (int): The ID of the appointment_id whose prescription to retrieve.
+
+#     Returns:
+#         dict: A dictionary containing the prescription's details
+
+#     Raises:
+#         DatabaseError: If there is an error retrieving the prescription or if the prescription does not exist.
+def get_prescription_by_appointment_id(id):
+    try:
+        query = text("""
+            SELECT *
+            FROM prescription
+            WHERE prescription.appointment_id = :id
+        """)
+        result = db.session.execute(query, {'id': id})
+        prescription = result.fetchone()
+        if prescription is None:
+            raise DatabaseError(f"No prescription found for appointment with id {id}")
+        return row_to_dict(prescription)
+    except SQLAlchemyError as e:
+        raise DatabaseError(f"Error retrieving prescription: {str(e)}")
+
 # Adds a new user with a hashed password to the database.
 
 #     Args:

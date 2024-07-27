@@ -239,3 +239,51 @@ function deleteAppointment(id) {
               });
       }
 }
+
+function openPrescriptionModal(appointmentId) {
+    document.getElementById('prescriptionAppointmentId').value = appointmentId;
+
+    fetch(`/get_prescription/${appointmentId}`)
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('prescription_notes').value = data.prescription_notes || '';
+            var prescriptionModal = new bootstrap.Modal(document.getElementById('prescriptionModal'));
+            prescriptionModal.show();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Failed to load prescription data');
+        });
+}
+
+document.getElementById('prescriptionForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    if (confirm("Are you sure you want to edit this prescription?")) {
+        const appointmentId = document.getElementById('prescriptionAppointmentId').value;
+        const prescriptionNotes = document.getElementById('prescription_notes').value;
+
+        fetch(`/edit_prescription/${appointmentId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                prescription_notes: prescriptionNotes
+            }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Prescription updated successfully');
+                var prescriptionModal = bootstrap.Modal.getInstance(document.getElementById('prescriptionModal'));
+                prescriptionModal.hide();
+            } else {
+                alert('Failed to update prescription: ' + data.message);
+            }
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+            alert('An error occurred while updating the prescription');
+        });
+    }
+});

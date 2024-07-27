@@ -1,29 +1,25 @@
+import logging
 import os
 from datetime import datetime
 from functools import wraps
-import logging
 from logging.handlers import RotatingFileHandler
-import yaml
-from flask import Flask, render_template, request, jsonify, redirect, url_for, session, flash, send_from_directory
-from flask_bcrypt import Bcrypt
-from dash import Dash, dcc, html, Input, Output
-import plotly.express as px
+
 import pandas as pd
+import plotly.express as px
+import yaml
+from dash import Dash, dcc, html, Input, Output
+from flask import Flask, render_template, request, jsonify, redirect, url_for, session, flash
+from flask_bcrypt import Bcrypt
+
 import db_queries
 from models import init_app
-from werkzeug.utils import secure_filename
-import os
 
 # Initialize Flask app
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.urandom(24)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///hospital.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['UPLOAD_FOLDER'] = 'uploads'
 app.config['LOGS_FOLDER'] = 'logs'
-
-if not os.path.exists(app.config['UPLOAD_FOLDER']):
-    os.makedirs(app.config['UPLOAD_FOLDER'])
 
 if not os.path.exists(app.config['LOGS_FOLDER']):
     os.makedirs(app.config['LOGS_FOLDER'])
@@ -39,15 +35,18 @@ app.logger.setLevel(logging.INFO)
 # Initialize Dash app
 dash_app = Dash(__name__, server=app, url_base_pathname='/dash/')
 
+
 # Load configuration
 def load_config():
     with open('configurations/config.yml', 'r') as config_file:
         return yaml.safe_load(config_file)
 
+
 config = load_config()
 doctor_categories = config['doctor_categories']
 admin_username = config['admin_username']
 admin_password = config['admin_password']
+
 
 def login_required(f):
     @wraps(f)
@@ -55,7 +54,9 @@ def login_required(f):
         if 'user_id' not in session:
             return redirect(url_for('login'))
         return f(*args, **kwargs)
+
     return decorated_function
+
 
 @app.route('/')
 def index():
@@ -143,12 +144,14 @@ def admin_create_user(data=None, bypass_admin_check=False):
         is_admin = data.get('is_admin') in [True, 'true', 'on', 1]
         user_id = db_queries.add_user(data['username'], data['password'], bcrypt, is_admin)
         if is_admin:
-            app.logger.info(f"User '{session['username']}' user added an Admin privileged user with username {data['username']}")
+            app.logger.info(
+                f"User '{session['username']}' user added an Admin privileged user with username {data['username']}")
         else:
             app.logger.info(f"User '{session['username']}' user added a regular user with username {data['username']}")
         return jsonify({'success': True, 'id': user_id}), 201
     except db_queries.DatabaseError as e:
-        app.logger.warning(f"Unsuccessful attempt by '{session['username']}' to create admin user with username {data['username']}")
+        app.logger.warning(
+            f"Unsuccessful attempt by '{session['username']}' to create admin user with username {data['username']}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
@@ -537,7 +540,6 @@ def delete_diagnostic(id):
         return jsonify({'success': False, 'error': str(e)}), 404 if "No diagnostic found" in str(e) else 500
 
 
-
 @app.route('/departments')
 @login_required
 def departments():
@@ -597,6 +599,7 @@ def get_department(id):
     except db_queries.DatabaseError as e:
         return jsonify({'error': str(e)}), 404 if "No department found" in str(e) else 500
 
+
 dash_app.layout = html.Div([
     dcc.Dropdown(
         id='x-axis-column',
@@ -610,9 +613,10 @@ dash_app.layout = html.Div([
         value='Number of Patients',
         placeholder='Select Y-axis column'
     ),
-    dcc.Graph(id='graph'),
-    dcc.Graph(id='histogram'),
-     dcc.Dropdown(
+    dcc.Graph(id='doctor_patient_histogram'),
+    dcc.Graph(id='dept_patient_histogram'),
+    dcc.Graph(id='diagnostics_patient_histogram'),
+    dcc.Dropdown(
         id='time-frame',
         options=[
             {'label': 'Daily', 'value': 'daily'},
@@ -624,9 +628,10 @@ dash_app.layout = html.Div([
     dcc.Graph(id='time_graph')
 ])
 
+
 # Graph for doctor and patient count
 @dash_app.callback(
-    Output('graph', 'figure'),
+    Output('doctor_patient_histogram', 'figure'),
     Input('x-axis-column', 'value'),
     Input('y-axis-column', 'value')
 )
@@ -644,9 +649,10 @@ def update_doctor_patient_histogram(x_column, y_column):
     fig = px.histogram(df, x=x_column, y=y_column, title="Histogram of Patients per Doctor")
     return fig
 
+
 # Number of Patients per Department
 @dash_app.callback(
-    Output('histogram', 'figure'),
+    Output('dept_patient_histogram', 'figure'),
     Input('x-axis-column', 'value')
 )
 def update_dept_patient_histogram(x_column):
@@ -654,13 +660,14 @@ def update_dept_patient_histogram(x_column):
         data = db_queries.count_patients_per_department()
         df = pd.DataFrame(data)
         df.rename(columns={'department_name': 'Department Name', 'patient_count': 'Number of Patients'}, inplace=True)
-        
+
         fig = px.histogram(df, x='Department Name', y='Number of Patients', title="Number of Patients per Department")
         return fig
 
     except Exception as e:
         print(f"Error updating histogram: {e}")
         return {}
+
 
 @dash_app.callback(
     Output('time_graph', 'figure'),
@@ -675,11 +682,29 @@ def update_time_graph(time_frame):
         data = db_queries.count_patients_yearly()
     else:
         data = []
-    
+
     df = pd.DataFrame(data)
 
     fig = px.line(df, x='date', y='patient_count', title=f'Number of Patients {time_frame.capitalize()}')
     return fig
+
+# Histogram for patients with maximum number of diagnostics
+@dash_app.callback(
+    Output('diagnostics_patient_histogram', 'figure'),
+    Input('x-axis-column', 'value')
+)
+def update_diagnostics_patient_histogram(x_column):
+    try:
+        data = db_queries.count_top_diagnostics_per_patient(10)
+        df = pd.DataFrame(data)
+        df.rename(columns={'patient_name': 'Patient Name', 'diagnostics_count': 'Number of Diagnostic Scans'}, inplace=True)
+
+        fig = px.histogram(df, x='Patient Name', y='Number of Diagnostic Scans', title="10 Patients with maximum number of Diagnostic Scans")
+        return fig
+
+    except Exception as e:
+        print(f"Error updating histogram: {e}")
+        return {}
 
 if __name__ == '__main__':
     app.run(debug=True)

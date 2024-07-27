@@ -1289,3 +1289,32 @@ def count_patients_yearly():
     result = db.session.execute(query)
     rows = result.mappings().all()
     return [{'date': row['date'], 'patient_count': row['patient_count']} for row in rows]
+
+
+
+# Counts the number of diagnostics per patient and return top ones.
+#
+# Returns:
+#     list: A list of dictionaries with patient name and diagnostics count.
+#
+# Raises:
+#     DatabaseError: If there is an error retrieving the data.
+def count_top_diagnostics_per_patient(count):
+    try:
+        query = text("""
+        SELECT p.name AS patient_name, COUNT(d.id) AS diagnostics_count
+        FROM Patient p
+        LEFT JOIN Appointment a ON p.id = a.patient_id
+        LEFT JOIN Diagnostic d ON a.id = d.appointment_id
+        GROUP BY p.name
+        ORDER BY diagnostics_count DESC
+        LIMIT :count
+        """)
+        result = db.session.execute(query, {'count': count})
+        rows = result.mappings().all()
+
+        data = [{'patient_name': row['patient_name'], 'diagnostics_count': row['diagnostics_count']} for row in rows]
+        return data
+    except Exception as e:
+        raise DatabaseError(f"An error occurred: {e}")
+

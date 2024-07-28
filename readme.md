@@ -83,31 +83,31 @@ Todo:
 - age in patients - done
 - complete department table with another page for its crud - done
 - try replacing the sqlalchemy methods with SQL queries - done
-- add validation in add/edit forms - Sindhu
-- try adding one sample plotly figure in dash and then embed using iframe into homepage
+- add validation in add/edit forms - Sindhu - Done
+- try adding one sample plotly figure in dash and then embed using iframe into homepage - Done
 - add code to install if not present for all libraries like flask, sqlalchemy - done
-- Add Nurse, Diagnostics, Prescription model and UI
+- Add Nurse, Diagnostics, Prescription model and UI - Done
 - Handle cascading delete of department, doctor and patient - done
-- add multiple plotly figures utilising multiple kind of SQL queries
--> number of patients each day/month/year
--> patients vs department
--> doctors vs count of patients
+- add multiple plotly figures utilising multiple kind of SQL queries - Done
+-> number of patients each day/month/year - Done
+-> patients vs department - Done
+-> doctors vs count of patients - Done
 
 Validations (Sindhu Krovvidi):
 - Department 
-    - User should enter only unique departments.
+    - User should enter only unique departments. - Done
 - Doctor
-    - Valid Phone number (should be numeric)
-    - Valid Email
+    - Valid Phone number (should be numeric) - Done
+    - Valid Email - Done
     - Valid Experience (should be numeric) // TODO: add check for negative numeric in UI - Done
-    - Zip code (numeric)
-    - Should have unique mail id
+    - Zip code (numeric) - Done
+    - Should have unique mail id - Done
 - Patient
-    - Valid Phone number (should be numeric)
-    - Valid Email // TODO: email should match <>@<>.<> pattern - Done
-    - TODO: When clicked on Edit then save without editing anything then email already exists checked which should be avoided
-    - Zip code (numeric)
-    - Should have unique mail id
+    - Valid Phone number (should be numeric) - Done
+    - Valid Email // TODO: email should match <>@<>.<> pattern - Done - Done
+    - TODO: When clicked on Edit then save without editing anything then email already exists checked which should be avoided - Done
+    - Zip code (numeric) - Done
+    - Should have unique mail id - Done
 - Appointments
     - To date is fixed to be upto 1hr from start date // TODO: make it 30 mins - Done
     - Check for doctors availability (To-do) - Done
@@ -117,14 +117,14 @@ Validations (Sindhu Krovvidi):
 Feedback:
 - Add validations on all the edit/delete - done
 - Add user login - done
-- Once login/user management works, add logging of who performed what action
+- Once login/user management works, add logging of who performed what action - Done
 
 TODO:
 - add comments on SQL queries - Done
 - Try to come up with SQL views, functions, triggers
-- interactive visualisation
-- Mail Professor for sample of technical reports and updating rubrics to include points for UI
-- Add ORDER BY in required Queries
+- interactive visualisation - Done
+- Mail Professor for sample of technical reports and updating rubrics to include points for UI - TODO
+- Add ORDER BY in required Queries - done
 
 Simplify presentation for a layman to understand
 
@@ -147,4 +147,4 @@ Simplify presentation for a layman to understand
 
 · Are there any conflicting appointments (appointments scheduled for the same doctor at the same time)? - Done
 
-· How many diagnostics reports have been generated for each patient?
+· How many diagnostics reports have been generated for each patient? - Done

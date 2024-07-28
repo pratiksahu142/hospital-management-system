@@ -38,6 +38,7 @@ def get_all_doctors_with_address_and_dept():
         FROM doctor
         LEFT JOIN department ON doctor.department_id = department.id
         LEFT JOIN address ON doctor.address_id = address.id
+        ORDER BY doctor.name
     """)
     result = db.session.execute(query)
     return [row_to_dict(row) for row in result]
@@ -57,6 +58,7 @@ def get_all_doctors_with_dept(id):
         SELECT doctor.*
         FROM doctor
         WHERE doctor.department_id = :id
+        ORDER BY doctor.name
     """)
     result = db.session.execute(query, {'id': id})
     return [row_to_dict(row) for row in result]
@@ -70,6 +72,7 @@ def get_all_doctors():
     query = text("""
         SELECT *
         FROM doctor
+        ORDER BY doctor.name
     """)
     result = db.session.execute(query)
     return [row_to_dict(row) for row in result]
@@ -195,6 +198,7 @@ def get_doctor(id):
             FROM doctor d
             LEFT JOIN address a ON d.address_id = a.id
             WHERE d.id = :id
+            LIMIT 1
         """)
         result = db.session.execute(query, {'id': id})
         doctor = result.fetchone()
@@ -223,6 +227,7 @@ def get_all_nurses():
         FROM nurse n
         LEFT JOIN doctor ON n.doctor_id = doctor.id
         LEFT JOIN address ON n.address_id = address.id
+        ORDER BY n.name
     """)
     result = db.session.execute(query)
     return [row_to_dict(row) for row in result]
@@ -344,6 +349,7 @@ def get_nurse(id):
             LEFT JOIN address a ON n.address_id = a.id
             LEFT JOIN doctor d ON n.doctor_id = d.id
             WHERE n.id = :id
+            LIMIT 1
         """)
         result = db.session.execute(query, {'id': id})
         nurse = result.fetchone()
@@ -372,6 +378,7 @@ def get_all_patients():
                address.zipcode
         FROM patient
         LEFT JOIN address ON patient.address_id = address.id
+        ORDER BY patient.name
     """)
     result = db.session.execute(query)
     return [row_to_dict(row) for row in result]
@@ -514,7 +521,7 @@ def get_patient(id):
 # Department Queries
 # Get all departments
 def get_all_departments():
-    query = text("SELECT * FROM department")
+    query = text("SELECT * FROM department ORDER BY department.name")
     result = db.session.execute(query)
     return [row_to_dict(row) for row in result]
 
@@ -655,6 +662,7 @@ def get_all_appointments():
         FROM appointment
         LEFT JOIN doctor ON appointment.doctor_id = doctor.id
         LEFT JOIN patient ON appointment.patient_id = patient.id
+        ORDER BY appointment.from_time DESC
     """)
     result = db.session.execute(query)
     return [row_to_dict(row) for row in result]

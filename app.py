@@ -385,8 +385,8 @@ def add_appointment():
             data['notes']
         )
 
-        db_queries.add_prescription(result['id'])
         if result['success']:
+            db_queries.add_prescription(result['id'])
             app.logger.info(f"User '{session['username']}' successfully created appointment with details {data}")
             return jsonify({'success': True, 'id': result['id']})
         else:

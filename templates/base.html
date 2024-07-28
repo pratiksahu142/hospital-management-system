@@ -41,7 +41,7 @@
             {% if session.get('user_id') %}
             <ul class="navbar-nav">
                 <li class="nav-item">
-                    <a class="nav-link btn btn-outline-light" href="{{ url_for('logout') }}">Logout</a>
+                    <a class="nav-link btn" href="{{ url_for('logout') }}">Logout <i class="fas fa-sign-out-alt"></i></a>
                 </li>
             </ul>
             {% endif %}

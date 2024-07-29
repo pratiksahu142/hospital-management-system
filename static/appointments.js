@@ -124,8 +124,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function filterAppointments() {
         const searchTerm = searchInput.value.toLowerCase();
-        const fromDate = fromDateInput.value ? new Date(fromDateInput.value) : null;
-        const toDate = toDateInput.value ? new Date(toDateInput.value) : null;
+        const fromDate = fromDateInput.value ? new Date(fromDateInput.value+'T00:00:00') : null;
+        const toDate = toDateInput.value ? new Date(toDateInput.value+'T23:59:59') : null;
 
         for (let i = 1; i < rows.length; i++) {
             const row = rows[i];

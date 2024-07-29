@@ -150,6 +150,7 @@ document
             addModal.hide();
             location.reload();
           } else {
+            console.log(data.error);
             alert('Email already exists!')
           }
         });
@@ -205,6 +206,7 @@ document
                 editModal.hide();
                 location.reload();
               } else {
+                console.log(data.error);
                 alert('Email already exists!')
               }
             });

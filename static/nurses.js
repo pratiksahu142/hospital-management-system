@@ -64,6 +64,7 @@ document.addEventListener("DOMContentLoaded", function () {
               addModal.hide();
               location.reload();
             } else {
+              console.log(data.error);
               alert("Email already exists!");
             }
           });
@@ -121,7 +122,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 editModal.hide();
                 location.reload();
               } else {
-                alert("Email already exists!" + data.error);
+                console.log(data.error);
+                alert("Email already exists!");
               }
             });
       }

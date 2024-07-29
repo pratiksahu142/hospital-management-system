@@ -1,4 +1,4 @@
-## Hospital Management System
+# Hospital Management System
 
 
 ### Objective:
@@ -37,7 +37,7 @@ Along with managing above entities in our application, we will be ading an Analy
 - Interactive Line Graph showing the number of patients daily/monthly/yearly <br /> ![img_17.png](resources/img_17.png) <br /> <br />
 
 
-#### Application Architecture
+### Application Architecture
 
 ![Architecture_HMS.jpeg](resources/Architecture_HMS.jpeg)
 
@@ -63,22 +63,22 @@ Along with managing above entities in our application, we will be ading an Analy
 
 #### Features checklist covered
 
-· How many patients were registered each day? - Done
+- [x] How many patients were registered each day?
 
-· How many patients were registered each month? - Done
+- [x] How many patients were registered each month?
 
-· How many patients were registered each year? - Done
+- [x] How many patients were registered each year?
 
-· How many patients were handled by each department? - Done
+- [x] How many patients were handled by each department?
 
-· How many patients were handled by each doctor? - Done
+- [x] How many patients were handled by each doctor?
 
-· What are the details of all the doctors in the system? - Done
+- [x] What are the details of all the doctors in the system?
 
-· What are the upcoming appointments for the next week? - Done
+- [x] What are the upcoming appointments for the next week?
 
-· What are the details of all the nurses in the system? - Done
+- [x] What are the details of all the nurses in the system?
 
-· Are there any conflicting appointments (appointments scheduled for the same doctor at the same time)? - Done
+- [x] Are there any conflicting appointments (appointments scheduled for the same doctor at the same time)?
 
-· How many diagnostics reports have been generated for each patient? - Done
+- [x] How many diagnostics reports have been generated for each patient?

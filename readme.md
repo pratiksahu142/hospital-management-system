@@ -26,7 +26,7 @@ This application can be used by Hospital staff to manage their data and appointm
 
 #### Entity RelationShip Diagram
 
-![ER Hospital management.jpeg](resources/ER Hospital management.jpeg)
+![ER_Hospital_management.jpeg](resources/ER_Hospital_management.jpeg)
 
 Along with managing above entities in our application, we will be ading an Analytics Dashboard for quick insights into the data.
 
@@ -39,7 +39,7 @@ Along with managing above entities in our application, we will be ading an Analy
 
 #### Application Architecture
 
-![Architecture HMS.jpeg](resources/Architecture HMS.jpeg)
+![Architecture_HMS.jpeg](resources/Architecture_HMS.jpeg)
 
 ### Technical Details:
 
